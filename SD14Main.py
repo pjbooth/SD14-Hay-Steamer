@@ -16,7 +16,6 @@ topicLog = "PJB/SD14-Hay-Steamer/1/Log"
 diagnostics = 1
 emailfrom = "pjb.rpi@gmail.com"
 emailto = "paulbooth46@gmail.com"
-fileToSend = datafile
 username = emailfrom
 password = "gmailpass9"
 keep_running = 1
@@ -135,7 +134,7 @@ def setdelay():
 
 
 def dummy():
-	
+	dummyline = "this does not do anything"
 
 ###########  end of defs  ##################
 
