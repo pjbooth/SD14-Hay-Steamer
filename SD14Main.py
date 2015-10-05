@@ -135,16 +135,16 @@ def setdelay():
 
 
 def dummy():
-	
+	dummyline = "this does not do anything"	
 
 ###########  end of defs  ##################
 
 requests = {0 : badrequest,
-			1 : diagon,
-			2 : diagoff,
-			3 : dummy,
-			4 : endprog,
-			5 : setdelay,
+	1 : diagon,
+	2 : diagoff,
+	3 : dummy,
+	4 : endprog,
+	5 : setdelay,
 }
 
 
