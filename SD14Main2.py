@@ -1,6 +1,5 @@
 #!/usr/bin/env python2.7
-# Light and Temperature watcher
-# Monitors incoming emails for strictly limited range of instructions, from authorised senders only
+# Temperature watcher .. publishes temperature over MQTT
 # based on example from Raspberry Pi Temperature and Light Sensor.pdf 
 # By Paul Booth 2015  paul_booth_uk@hotmail.com
 #
@@ -9,10 +8,12 @@
 # Just wire them up and run it
 # By Alex Eames http://RasPi.TV
 
-delay = 600                #  number of seconds between each reading sample
+delay = 10                #  number of seconds between each reading sample
 dateString = '%Y/%m/%d %H:%M:%S'
-diagnostics = 0
-datafile = 'IOTWatch1.csv'
+topicRequest = "PJB/SD14-Hay-Steamer/1/Request"
+topicResponse = "PJB/SD14-Hay-Steamer/1/Response"
+topicLog = "PJB/SD14-Hay-Steamer/1/Log"
+diagnostics = 1
 emailfrom = "pjb.rpi@gmail.com"
 emailto = "paulbooth46@gmail.com"
 fileToSend = datafile
@@ -21,12 +22,12 @@ password = "gmailpass9"
 keep_running = 1
 
 
-
 import subprocess
 import os
 import sys
 import time, datetime
 import RPi.GPIO as GPIO
+import paho.mqtt.client as paho        #as instructed by http://mosquitto.org/documentation/python/
 import smtplib
 import base64
 import mimetypes
@@ -81,21 +82,31 @@ def printlog(message):
 	logline = datetime.datetime.now().strftime(dateString) + " " + message
 	print logline	
 	if diagnostics ==1:
-#		client.publish(topicLog, payload=logline, qos=0, retain=False)
+		client.publish(topicLog, payload=logline, qos=0, retain=False)
 
 
-def logdata(light, temp):
-	m = datetime.datetime.now().strftime('%Y/%m/%d') + "," + datetime.datetime.now().strftime('%H:%M:%S') + "," + light + "," + temp
+# The callback for when the client receives a CONNACK response from the server.
+def on_connect(client, userdata, rc):
+    print("Connected with result code "+str(rc))
+	# Subscribing in on_connect() means that if we lose the connection and
+	# reconnect then subscriptions will be renewed.
+    client.subscribe(topicRequest)
+
+
+# The callback for when a PUBLISH message is received from the server.
+def on_message(client, userdata, msg):
+	global parms
 	try:
-		f = open(datafile,'a')
-		# printlog("File opened for append OK")
-	except:
-		printlog("Error trying to open file")
-	try:
-		f.write(m + "\n")
-	except:
-		printlog("Error trying to write line to datafile")
-	f.close()
+		cmd, parms = msg.payload.split(' ', 1)
+		reqnum = int(cmd)
+	except ValueError:
+		reqnum = 0
+	requests[reqnum]()        #  execute the requested subroutine
+	printlog(msg.topic+" "+str(msg.payload))
+
+
+def badrequest():
+	printlog("Requests must be an integer between 1 and 2 inclusive")
 
 
 def diagon():
@@ -110,85 +121,30 @@ def diagoff():
 	print "turning diag off"
 
 
-def sendIOTfile():
-	print "requested to send data file"
-	send_mime()
-
-
 def endprog():
+	global keep_running
+	printlog("Stopping the program")
 	keep_running = 0
-
-def send_mime():
-	msg = MIMEMultipart()
-	msg["From"] = emailfrom
-	msg["To"] = emailto
-	msg["Subject"] = "Watcher data file"
-	msg.preamble = "This is the data file for the temperature and light level"
-	fp = open(fileToSend)
-	# Note: we should handle calculating the charset
-	attachment = MIMEText(fp.read())
-	fp.close()
-	newfname = "Watcher " + datetime.datetime.now().strftime(dateString) + ".csv"
-	attachment.add_header("Content-Disposition", "attachment", filename=newfname)
-	msg.attach(attachment)
-	server = smtplib.SMTP("smtp.gmail.com:587")
-	server.starttls()
-	server.login(username,password)
-	server.sendmail(emailfrom, emailto, msg.as_string())
-	server.quit()
-
-def parse_email():
-	server = smtplib.SMTP("smtp.gmail.com:587")
-	server.starttls()
-	server.login(username,password)
-	server.list()    # Gives list of folders or labels in gmail
-	server.quit()
 	
-	count = 0
+	
+def setdelay():
+	global parms
+	printlog("Setting delay")
+	printlog("Parms = " + parms)
+	
 
-    while count < 6:
-        try:
-            # Connect to inbox
-            server.select("inbox"); 
 
-            # Search for an unread email from user's email address
-            result, data = server.search(None,'(UNSEEN FROM "paulbooth46@gmail.com")');
-
-            ids = data[0]   # data is a list
-            id_list = ids.split() # ids is a space separated string
-
-            latest_email_id = id_list[-1] # get the latest
-            result, data = server.fetch(latest_email_id, "(RFC822)");
-
-            raw_email = data[0][1];
-
-            recv_msg = email.message_from_string(raw_email)
-
-            if(recv_msg['Subject'] == "Tester"):
-                print("Tester spotted. Hurray!!!")
-            else:
-                print("I do not understand")
-                
-            count = 6
-
-        except IndexError:
-            time.sleep(30*1)
-            if count < 5:
-                count = count + 1
-                continue
-            else:
-                print("Sorry,No reply in the last 3 minutes.")
-                count = 6
-
-#####################  >>>>>>>>>>>>>>  paused here ;  need to finish from the example
+def dummy():
+	
 
 ###########  end of defs  ##################
 
 requests = {0 : badrequest,
 			1 : diagon,
 			2 : diagoff,
-			3 : sendIOTfile
-			4 : endprog
+			3 : dummy,
+			4 : endprog,
+			5 : setdelay,
 }
 
 
@@ -220,6 +176,17 @@ for device in w1_devices:
         this_device = "/sys/bus/w1/devices/" + device + "/w1_slave"
         w1_device_list.append(this_device)
 
+try:     # Create the MQTT client, connect to the broker and start threaded loop in background
+	global client
+	client = paho.Client()           # as instructed by http://mosquitto.org/documentation/python/
+	# Connect to the MQTT broker 
+	client.on_connect = on_connect
+	client.on_message = on_message
+	client.connect("iot.eclipse.org", 1883, 60)
+	print("MQTT client connected to broker")
+except:
+	print("Cannot start MQTT client and connect to MQ broker")
+
 
 try:
 	while keep_running == 1:
@@ -227,14 +194,10 @@ try:
             for device in w1_device_list:
                 temperature = '%d' % read_temp(device)
                 sensor += 1
-            light = '%.2f' % (5 / msr_time(23))
-            msgline = light + " " + temperature
+            msgline = temperature
             printlog(msgline)
-            logdata(light, temperature)
-            parse_email()			# check gmail for incoming emails
+            client.loop(timeout=1.0, max_packets=1)
             time.sleep(delay)
-            
-            
     	
 except KeyboardInterrupt:
 	printlog("Exiting after Ctrl-C")
