@@ -8,6 +8,7 @@
 # Just wire them up and run it
 # By Alex Eames http://RasPi.TV
 
+version = "SD14-Hay-Steamer v1.1"
 delay = 10                #  number of seconds between each reading sample
 dateString = '%Y/%m/%d %H:%M:%S'
 topicRequest = "PJB/SD14-Hay-Steamer/1/Request"
@@ -63,22 +64,8 @@ def read_temp(device):
     return temperature
 
 
-def msr_time(msr_pin):
-    reading = 0
-    GPIO.setup(msr_pin, GPIO.OUT)
-    GPIO.output(msr_pin, GPIO.LOW)
-    time.sleep(0.1)
-    starttime = time.time()                     # note start time
-    GPIO.setup(msr_pin, GPIO.IN)
-    while (GPIO.input(msr_pin) == GPIO.LOW):
-        reading += 1
-    endtime = time.time()                       # note end time
-    total_time = 1000 * (endtime - starttime)
-    return total_time                           # reading in milliseconds
-
-
 def printlog(message):
-	logline = datetime.datetime.now().strftime(dateString) + " " + message
+	logline = version + " " + datetime.datetime.now().strftime(dateString) + " " + message
 	print logline	
 	if diagnostics ==1:
 		client.publish(topicLog, payload=logline, qos=0, retain=False)
@@ -133,6 +120,15 @@ def setdelay():
 	
 
 
+def restart():
+	GPIO.cleanup()
+	command = "/usr/bin/sudo /sbin/shutdown -r now"
+	import subprocess
+	process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+	output = process.communicate()[0]
+	print output
+
+
 def dummy():
 	dummyline = "this does not do anything"
 
@@ -141,7 +137,7 @@ def dummy():
 requests = {0 : badrequest,
 			1 : diagon,
 			2 : diagoff,
-			3 : dummy,
+			3 : restart,
 			4 : endprog,
 			5 : setdelay,
 }
@@ -193,7 +189,7 @@ try:
             for device in w1_device_list:
                 temperature = '%d' % read_temp(device)
                 sensor += 1
-            msgline = temperature
+            msgline = "Temperature = " + temperature + "C"
             printlog(msgline)
             client.loop(timeout=1.0, max_packets=1)
             time.sleep(delay)
