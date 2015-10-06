@@ -8,7 +8,7 @@
 # Just wire them up and run it
 # By Alex Eames http://RasPi.TV
 
-version = "SD14-Hay-Steamer v1.1"
+version = "SD14-Hay-Steamer v1.2"
 delay = 10                #  number of seconds between each reading sample
 dateString = '%Y/%m/%d %H:%M:%S'
 topicRequest = "PJB/SD14-Hay-Steamer/1/Request"
