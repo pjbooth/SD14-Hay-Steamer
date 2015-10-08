@@ -8,7 +8,7 @@
 # Just wire them up and run it
 # By Alex Eames http://RasPi.TV
 
-version = "SD14-Hay-Steamer v1.5"
+version = "SD14-Hay-Steamer v1.6"
 delay = 10                #  number of seconds between each reading sample
 dateString = '%Y/%m/%d %H:%M:%S'
 topicRequest = "PJB/SD14-Hay-Steamer/1/Request"
@@ -109,8 +109,13 @@ def diagoff():
 
 def endprog():
 	global keep_running
-	printlog("Stopping the program")
-	keep_running = 0
+	printlog("Stopping the Raspberry")
+	GPIO.cleanup()
+	command = "/usr/bin/sudo /sbin/shutdown -h now"
+	import subprocess
+	process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+	output = process.communicate()[0]
+	print output
 	
 	
 def setdelay():
@@ -121,6 +126,7 @@ def setdelay():
 
 
 def restart():
+	printlog("Restarting as requested")
 	GPIO.cleanup()
 	command = "/usr/bin/sudo /sbin/shutdown -r now"
 	import subprocess
