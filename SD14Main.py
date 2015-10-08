@@ -84,6 +84,7 @@ def on_message(client, userdata, msg):
 	global parms
 	try:
 		cmd, parms = msg.payload.split(' ', 1)
+		printlog("msg=" + msg + ", cmd=" + cmd + ", parms=" + parms)
 		reqnum = int(cmd)
 	except ValueError:
 		reqnum = 0
