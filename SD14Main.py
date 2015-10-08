@@ -8,7 +8,7 @@
 # Just wire them up and run it
 # By Alex Eames http://RasPi.TV
 
-version = "SD14-Hay-Steamer v1.2"
+version = "SD14-Hay-Steamer v1.3"
 delay = 10                #  number of seconds between each reading sample
 dateString = '%Y/%m/%d %H:%M:%S'
 topicRequest = "PJB/SD14-Hay-Steamer/1/Request"
@@ -84,7 +84,7 @@ def on_message(client, userdata, msg):
 	global parms
 	try:
 		cmd, parms = msg.payload.split(' ', 1)
-		printlog("msg=" + msg + ", cmd=" + cmd + ", parms=" + parms)
+		printlog("cmd=" + cmd + ", parms=" + parms)
 		reqnum = int(cmd)
 	except ValueError:
 		reqnum = 0
