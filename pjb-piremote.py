@@ -22,7 +22,7 @@ mqtt_connected = 0
 
 
 def printlog(message):
-	logline = progname + version + " " + datetime.datetime.now().strftime(dateString) + " " + message
+	logline = progname + " " + version + " " + datetime.datetime.now().strftime(dateString) + ": " + message
 	print logline	
 	if mqtt_connected == 1:
 		client.publish(topicLog, payload=logline, qos=0, retain=False)

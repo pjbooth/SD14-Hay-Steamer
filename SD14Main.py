@@ -8,41 +8,18 @@
 # Just wire them up and run it
 # By Alex Eames http://RasPi.TV
 
-version = "SD14-Hay-Steamer v1.6"
-delay = 10                #  number of seconds between each reading sample
-dateString = '%Y/%m/%d %H:%M:%S'
-topicRequest = "PJB/SD14-Hay-Steamer/1/Request"
-topicResponse = "PJB/SD14-Hay-Steamer/1/Response"
-topicLog = "PJB/SD14-Hay-Steamer/1/Log"
-diagnostics = 1
-emailfrom = "pjb.rpi@gmail.com"
-emailto = "paulbooth46@gmail.com"
-username = emailfrom
-password = "gmailpass9"
-keep_running = 1
-
-
 import subprocess
 import os
 import sys
 import time, datetime
 import RPi.GPIO as GPIO
 import paho.mqtt.client as paho        #as instructed by http://mosquitto.org/documentation/python/
-import smtplib
-import base64
-import mimetypes
-from email.mime.multipart import MIMEMultipart
-from email import encoders
-from email.message import Message
-from email.mime.audio import MIMEAudio
-from email.mime.base import MIMEBase
-from email.mime.image import MIMEImage
-from email.mime.text import MIMEText
 from ConfigParser import SafeConfigParser
 
-configfile = "SD14-Hay-Steamer.cfg"
-
-
+progname = sys.argv[0]
+configfile = "SD14Main.cfg"
+dateString = '%Y/%m/%d %H:%M:%S'
+keep_running = 1
 
 
 ####  here are the defs   ###################
@@ -72,6 +49,11 @@ def printlog(message):
 	print logline	
 	if diagnostics ==1:
 		client.publish(topicLog, payload=logline, qos=0, retain=False)
+
+
+def printdata(message):
+	print(topicData + ": " + message)	
+	client.publish(topicData, payload=message, qos=0, retain=False)
 
 
 # The callback for when the client receives a CONNACK response from the server.
@@ -157,58 +139,66 @@ GPIO.setup(23, GPIO.OUT) # 23 for LDR light sensor
 
 
 try:
-    w1_devices = os.listdir("/sys/bus/w1/devices/")
+	parser = SafeConfigParser()										# open and read the configuration file
+	parser.read(configfile)
+	version = parser.get('SD14Main', 'version')
+	mqttBroker = parser.get('SD14Main', 'mqttBroker')
+	topicRequest = parser.get('SD14Main', 'topicRequest')
+	topicData = parser.get('SD14Main', 'topicData')
+	topicLog = parser.get('SD14Main', 'topicLog')
+	delay = parser.getint('SD14Main', 'delay')
+	printlog(progname + " starting up")							# startup messag
+
+	try:     									# Create the MQTT client, connect to the broker and start threaded loop in background
+		global client
+		client = paho.Client()           			# as instructed by http://mosquitto.org/documentation/python/
+		client.on_connect = on_connect				# Connect to the MQTT broker 
+		client.on_message = on_message
+		client.connect(mqttBroker, 1883, 60)
+		mqtt_connected = 1
+		printlog("MQTT client connected to broker")
+
+		try:
+			w1_devices = os.listdir("/sys/bus/w1/devices/")
+		except:
+			printlog "Loading 1-wire device drivers, please wait five seconds..."
+			output_mp1 = subprocess.Popen('sudo modprobe w1-gpio', shell=True, stdout=subprocess.PIPE)
+			output_mp2 = subprocess.Popen('sudo modprobe w1-therm', shell=True, stdout=subprocess.PIPE)
+			time.sleep(5)        									# wait a few seconds to stop the program storming ahead and crashing out
+			w1_devices = os.listdir("/sys/bus/w1/devices/")
+		no_of_devices = len(w1_devices) -1
+		printlog("You have %d 1-wire devices attached" % (no_of_devices))
+		if no_of_devices < 1:
+			printlog("Please check your wiring and try again.")
+			sys.exit()
+		w1_device_list = []
+		for device in w1_devices:
+			if not ('w1_bus' in device):				        # create string for calling each device and append to list
+				this_device = "/sys/bus/w1/devices/" + device + "/w1_slave"
+				w1_device_list.append(this_device)
+
+		try:
+			while keep_running == 1:
+				sensor = 1
+				for device in w1_device_list:
+					temperature = '%d' % read_temp(device)
+					sensor += 1
+				printdata("Temperature = " + temperature + "C")
+				client.loop(timeout=1.0, max_packets=1)
+				time.sleep(delay)
+
+		except KeyboardInterrupt:
+			printlog("Exiting after Ctrl-C")
+
+		except:
+			printlog("Unexpected fault occurred in main loop")
+
+	except:
+		printlog("Cannot start MQTT client and connect to MQ broker")
+
 except:
-    print "Loading 1-wire device drivers, please wait five seconds..."
-    output_mp1 = subprocess.Popen('sudo modprobe w1-gpio', shell=True, stdout=subprocess.PIPE)
-    output_mp2 = subprocess.Popen('sudo modprobe w1-therm', shell=True, stdout=subprocess.PIPE)
-    time.sleep(5)        # wait a few seconds to stop the program storming ahead and crashing out
-    w1_devices = os.listdir("/sys/bus/w1/devices/")
+	printlog("Unable to process configuration file " + configfile)
 
-no_of_devices = len(w1_devices) -1
-print("You have %d 1-wire devices attached" % (no_of_devices))
-
-if no_of_devices < 1:
-    print("Please check your wiring and try again.")
-    sys.exit()
-
-w1_device_list = []
-
-for device in w1_devices:
-    if not ('w1_bus' in device):
-        # create string for calling each device and append to list
-        this_device = "/sys/bus/w1/devices/" + device + "/w1_slave"
-        w1_device_list.append(this_device)
-
-try:     # Create the MQTT client, connect to the broker and start threaded loop in background
-	global client
-	client = paho.Client()           # as instructed by http://mosquitto.org/documentation/python/
-	# Connect to the MQTT broker 
-	client.on_connect = on_connect
-	client.on_message = on_message
-	client.connect("iot.eclipse.org", 1883, 60)
-	print("MQTT client connected to broker")
-except:
-	print("Cannot start MQTT client and connect to MQ broker")
-
-
-try:
-	while keep_running == 1:
-            sensor = 1
-            for device in w1_device_list:
-                temperature = '%d' % read_temp(device)
-                sensor += 1
-            msgline = "Temperature = " + temperature + "C"
-            printlog(msgline)
-            client.loop(timeout=1.0, max_packets=1)
-            time.sleep(delay)
-    	
-except KeyboardInterrupt:
-	printlog("Exiting after Ctrl-C")
-	
-except:
-	printlog("Unexpected fault occurred in main loop")
-	
 finally:
 	GPIO.cleanup()     # this ensures a clean exit	
 
