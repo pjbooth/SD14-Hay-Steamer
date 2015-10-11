@@ -15,10 +15,6 @@ configfile = "pjb-piremote.cfg"
 dateString = '%Y/%m/%d %H:%M:%S'
 progname = sys.argv[0]
 keep_running = 1
-requests = {0 : badrequest,
-			1 : shutdown,
-			2 : reboot
-}
 
 
 ####  here are the defs   ###################
@@ -80,6 +76,10 @@ def dummy():
 
 ###########  end of defs  ##################
 
+requests = {0 : badrequest,
+			1 : shutdown,
+			2 : reboot
+}
 
 try:
 	parser = SafeConfigParser()										# open and read the configuration file
