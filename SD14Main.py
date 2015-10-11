@@ -19,6 +19,7 @@ from ConfigParser import SafeConfigParser
 progname = sys.argv[0]
 configfile = "SD14Main.cfg"
 dateString = '%Y/%m/%d %H:%M:%S'
+timeString = '%H:%M:%S'
 keep_running = 1
 mqtt_connected = 0
 diagnostics = 1
@@ -28,22 +29,14 @@ diagnostics = 1
 
 
 def read_temp(device):
-    DS18b20 = open(device)
-    text = DS18b20.read()
-    DS18b20.close()
-
-    # Split the text with new lines (\n) and select the second line.
-    secondline = text.split("\n")[1]
-
-    # Split the line into words, referring to the spaces, and select the 10th word (counting from 0).
-    temperaturedata = secondline.split(" ")[9]
-
-    # The first two characters are "t=", so get rid of those and convert the temperature from a string to a number.
-    temperature = float(temperaturedata[2:])
-
-    # Put the decimal point in the right place and display it.
-    temperature = temperature / 1000
-    return temperature
+	DS18b20 = open(device)
+	text = DS18b20.read()
+	DS18b20.close()
+	secondline = text.split("\n")[1]		    # Split the text with new lines (\n) and select the second line.
+	temperaturedata = secondline.split(" ")[9]	# Split the line into words, referring to the spaces, and select the 10th word (counting from 0).
+	temperature = float(temperaturedata[2:])	# The first two characters are "t=", so get rid of those and convert the temperature from a string to a number.
+	temperature = temperature / 1000			# Put the decimal point in the right place and display it.
+	return temperature
 
 
 def printlog(message):
@@ -53,7 +46,6 @@ def printlog(message):
 		client.publish(topicLog, payload=logline, qos=0, retain=False)
 
 
-
 def printdata(message):
 	print(topicData + ": " + message)	
 	client.publish(topicData, payload=message, qos=0, retain=False)
@@ -61,10 +53,10 @@ def printdata(message):
 
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, rc):
-    print("Connected with result code "+str(rc))
+	print("Connected with result code "+str(rc))
 	# Subscribing in on_connect() means that if we lose the connection and
 	# reconnect then subscriptions will be renewed.
-    client.subscribe(topicRequest)
+	client.subscribe(topicRequest)
 
 
 # The callback for when a PUBLISH message is received from the server.
@@ -95,45 +87,16 @@ def diagoff():
 	print "turning diag off"
 
 
-def endprog():
-	global keep_running
-	printlog("Stopping the Raspberry")
-	GPIO.cleanup()
-	command = "/usr/bin/sudo /sbin/shutdown -h now"
-	import subprocess
-	process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-	output = process.communicate()[0]
-	print output
-	
-	
-def setdelay():
-	global parms
-	printlog("Setting delay")
-	printlog("Parms = " + parms)
-	
-
-
-def restart():
-	printlog("Restarting as requested")
-	GPIO.cleanup()
-	command = "/usr/bin/sudo /sbin/shutdown -r now"
-	import subprocess
-	process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-	output = process.communicate()[0]
-	print output
-
-
 def dummy():
 	dummyline = "this does not do anything"
 
 ###########  end of defs  ##################
 
 requests = {0 : badrequest,
-			1 : diagon,
-			2 : diagoff,
-			3 : restart,
-			4 : endprog,
-			5 : setdelay,
+			1 : dummy,
+			2 : dummy,
+			3 : diagon
+			4 : diagoff
 }
 
 
@@ -186,7 +149,7 @@ try:
 				for device in w1_device_list:
 					temperature = '%d' % read_temp(device)
 					sensor += 1
-				printdata("Temperature = " + temperature + "C")
+				printdata(datetime.datetime.now().strftime(timeString) + "," + temperature)
 				client.loop(timeout=1.0, max_packets=1)
 				time.sleep(delay)
 

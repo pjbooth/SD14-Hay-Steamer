@@ -99,9 +99,7 @@ try:
 		client = paho.Client()           			# as instructed by http://mosquitto.org/documentation/python/
 		client.on_connect = on_connect				# Connect to the MQTT broker 
 		client.on_message = on_message
-		printlog("mqttBroker = " + mqttBroker)
 		client.connect(mqttBroker, 1883, 60)
-		printlog("done client.connect")
 		mqtt_connected = 1
 		printlog("MQTT client connected to broker")
 		try:
