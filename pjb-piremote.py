@@ -111,6 +111,3 @@ except KeyboardInterrupt:
 	printlog("Exiting after Ctrl-C")
 except:
 	printlog("Trouble reading configuration file: " + filename)
-	
-finally:
-
