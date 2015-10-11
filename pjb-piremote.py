@@ -4,6 +4,13 @@
 #
 configfile = "pjb-piremote.cfg"
 dateString = '%Y/%m/%d %H:%M:%S'
+progname = sys.argv[0]
+keep_running = 1
+requests = {0 : badrequest,
+			1 : shutdown,
+			2 : reboot
+}
+
 
 import subprocess
 import os
@@ -18,9 +25,9 @@ from ConfigParser import SafeConfigParser
 
 
 def printlog(message):
-	logline = version + " " + datetime.datetime.now().strftime(dateString) + " " + message
+	logline = progname + version + " " + datetime.datetime.now().strftime(dateString) + " " + message
 	print logline	
-#	client.publish(topicLog, payload=logline, qos=0, retain=False)
+	client.publish(topicLog, payload=logline, qos=0, retain=False)
 
 
 # The callback for when the client receives a CONNACK response from the server.
@@ -73,27 +80,37 @@ def dummy():
 
 ###########  end of defs  ##################
 
-requests = {0 : badrequest,
-			1 : shutdown,
-			2 : reboot
-}
-
 
 try:
-	parser = SafeConfigParser()
+	parser = SafeConfigParser()										# open and read the configuration file
 	parser.read(configfile)
 	version = parser.get('pjb-piremote', 'version')
+	mqttBroker = parser.get('pjb-piremote', 'mqttBroker')
 	topicRequest = parser.get('pjb-piremote', 'topicRequest')
 	topicLog = parser.get('pjb-piremote', 'topicLog')
-	printlog("version = " + version)
+	delay = parser.getint('pjb-piremote', 'delay')
 	
+	printlog(progname + " starting up")							# startup message
 	
+	try:     									# Create the MQTT client, connect to the broker and start threaded loop in background
+		global client
+		client = paho.Client()           			# as instructed by http://mosquitto.org/documentation/python/
+		client.on_connect = on_connect				# Connect to the MQTT broker 
+		client.on_message = on_message
+		client.connect(mqttBroker, 1883, 60)
+		print("MQTT client connected to broker")
+		try:
+			while keep_running == 1:
+            	client.loop(timeout=1.0, max_packets=1)
+            	time.sleep(delay)
+		except:
+			printlog("Unknown fault in main loop)
+	except:
+		printlog("Cannot start MQTT client and connect to MQ broker")
 except KeyboardInterrupt:
 	printlog("Exiting after Ctrl-C")
-	
 except:
 	printlog("Trouble reading configuration file: " + filename)
 	
 finally:
-	GPIO.cleanup()     # this ensures a clean exit	
 
