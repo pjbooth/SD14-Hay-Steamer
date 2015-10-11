@@ -104,7 +104,7 @@ try:
 				client.loop(timeout=1.0, max_packets=1)
 				time.sleep(delay)
 		except:
-			printlog("Unknown fault in main loop)
+			printlog("Unknown fault in main loop")
 	except:
 		printlog("Cannot start MQTT client and connect to MQ broker")
 except KeyboardInterrupt:
