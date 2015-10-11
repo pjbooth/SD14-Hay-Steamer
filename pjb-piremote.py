@@ -88,12 +88,11 @@ try:
 	printlog("version = " + version)
 	
 	
+except KeyboardInterrupt:
+	printlog("Exiting after Ctrl-C")
 	
 except:
 	printlog("Trouble reading configuration file: " + filename)
-	
-except KeyboardInterrupt:
-	printlog("Exiting after Ctrl-C")
 	
 finally:
 	GPIO.cleanup()     # this ensures a clean exit	
