@@ -101,8 +101,8 @@ try:
 		print("MQTT client connected to broker")
 		try:
 			while keep_running == 1:
-            	client.loop(timeout=1.0, max_packets=1)
-            	time.sleep(delay)
+				client.loop(timeout=1.0, max_packets=1)
+				time.sleep(delay)
 		except:
 			printlog("Unknown fault in main loop)
 	except:
