@@ -97,11 +97,8 @@ try:
 	try:     									# Create the MQTT client, connect to the broker and start threaded loop in background
 		global client
 		client = paho.Client()           			# as instructed by http://mosquitto.org/documentation/python/
-		printlog("done paho.Client()")
 		client.on_connect = on_connect				# Connect to the MQTT broker 
-		printlog("done client.on_connect")
 		client.on_message = on_message
-		printlog("done client.on_message")
 		printlog("mqttBroker = " + mqttBroker)
 		client.connect(mqttBroker, 1883, 60)
 		printlog("done client.connect")
