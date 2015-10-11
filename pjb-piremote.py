@@ -15,6 +15,7 @@ configfile = "pjb-piremote.cfg"
 dateString = '%Y/%m/%d %H:%M:%S'
 progname = sys.argv[0]
 keep_running = 1
+mqtt_connected = 0
 
 
 ####  here are the defs   ###################
@@ -23,7 +24,8 @@ keep_running = 1
 def printlog(message):
 	logline = progname + version + " " + datetime.datetime.now().strftime(dateString) + " " + message
 	print logline	
-	client.publish(topicLog, payload=logline, qos=0, retain=False)
+	if mqtt_connected == 1:
+		client.publish(topicLog, payload=logline, qos=0, retain=False)
 
 
 # The callback for when the client receives a CONNACK response from the server.
@@ -31,7 +33,7 @@ def on_connect(client, userdata, rc):
     print("Connected with result code "+str(rc))
 	# Subscribing in on_connect() means that if we lose the connection and
 	# reconnect then subscriptions will be renewed.
-    client.subscribe(topicLog)
+    client.subscribe(topicRequest)
 
 
 # The callback for when a PUBLISH message is received from the server.
@@ -98,7 +100,8 @@ try:
 		client.on_connect = on_connect				# Connect to the MQTT broker 
 		client.on_message = on_message
 		client.connect(mqttBroker, 1883, 60)
-		print("MQTT client connected to broker")
+		mqtt_connected = 1
+		printlog("MQTT client connected to broker")
 		try:
 			while keep_running == 1:
 				client.loop(timeout=1.0, max_packets=1)
