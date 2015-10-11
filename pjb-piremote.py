@@ -2,15 +2,6 @@
 # Remote control of a Raspberry Pi through MQTT requests
 # By Paul Booth 2015  paul_booth_uk@hotmail.com
 #
-configfile = "pjb-piremote.cfg"
-dateString = '%Y/%m/%d %H:%M:%S'
-progname = sys.argv[0]
-keep_running = 1
-requests = {0 : badrequest,
-			1 : shutdown,
-			2 : reboot
-}
-
 
 import subprocess
 import os
@@ -19,6 +10,15 @@ import time, datetime
 import paho.mqtt.client as paho        #as instructed by http://mosquitto.org/documentation/python/
 import RPi.GPIO as GPIO
 from ConfigParser import SafeConfigParser
+
+configfile = "pjb-piremote.cfg"
+dateString = '%Y/%m/%d %H:%M:%S'
+progname = sys.argv[0]
+keep_running = 1
+requests = {0 : badrequest,
+			1 : shutdown,
+			2 : reboot
+}
 
 
 ####  here are the defs   ###################
