@@ -102,6 +102,7 @@ try:
 		printlog("done client.on_connect")
 		client.on_message = on_message
 		printlog("done client.on_message")
+		printlog("mqttBroker = " + mqttBroker)
 		client.connect(mqttBroker, 1883, 60)
 		printlog("done client.connect")
 		mqtt_connected = 1
