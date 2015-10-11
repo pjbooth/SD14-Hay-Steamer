@@ -38,6 +38,9 @@ from email.mime.audio import MIMEAudio
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
+from ConfigParser import SafeConfigParser
+
+configfile = "SD14-Hay-Steamer.cfg"
 
 
 
