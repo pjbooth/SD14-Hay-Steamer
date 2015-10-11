@@ -95,7 +95,7 @@ def dummy():
 requests = {0 : badrequest,
 			1 : dummy,
 			2 : dummy,
-			3 : diagon
+			3 : diagon,
 			4 : diagoff
 }
 
