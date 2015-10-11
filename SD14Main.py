@@ -21,6 +21,7 @@ configfile = "SD14Main.cfg"
 dateString = '%Y/%m/%d %H:%M:%S'
 keep_running = 1
 mqtt_connected = 0
+diagnostics = 1
 
 
 ####  here are the defs   ###################
@@ -48,7 +49,7 @@ def read_temp(device):
 def printlog(message):
 	logline = progname + " " + version + " " + datetime.datetime.now().strftime(dateString) + ": " + message
 	print logline	
-	if mqtt_connected == 1:
+	if mqtt_connected == 1 and diagnostics == 1:
 		client.publish(topicLog, payload=logline, qos=0, retain=False)
 
 
