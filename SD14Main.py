@@ -23,6 +23,15 @@ timeString = '%H:%M:%S'
 keep_running = 1
 mqtt_connected = 0
 diagnostics = 1
+organization = "p4t75f"
+deviceType = "pjb-rpi"
+deviceId = "b827eba84426"
+authMethod = "token"
+auth-token = "j0g64Ktw1W*zGnyqRg"
+deviceOptions = {"org": organization, "type": deviceType, "id": deviceId, "auth-method": authMethod, "auth-token": authToken}
+x = 42
+myData = { 'hello' : 'world', 'x' : x}
+
 
 
 ####  here are the defs   ###################
@@ -43,7 +52,8 @@ def printlog(message):
 	logline = progname + " " + version + " " + datetime.datetime.now().strftime(dateString) + ": " + message
 	print logline	
 	if mqtt_connected == 1 and diagnostics == 1:
-		client.publish(topicLog, payload=logline, qos=0, retain=False)
+#		client.publish(topicLog, payload=logline, qos=0, retain=False)
+		deviceCli.publishEvent(event="greeting", msgFormat="json", data=logline)
 
 
 def printdata(message):
@@ -117,10 +127,12 @@ try:
 
 	try:     									# Create the MQTT client, connect to the broker and start threaded loop in background
 		global client
-		client = paho.Client()           			# as instructed by http://mosquitto.org/documentation/python/
-		client.on_connect = on_connect				# Connect to the MQTT broker 
-		client.on_message = on_message
-		client.connect(mqttBroker, 1883, 60)
+#		client = paho.Client()           			# as instructed by http://mosquitto.org/documentation/python/
+		deviceCli = ibmiotf.device.Client(deviceOptions)
+#		client.on_connect = on_connect				# Connect to the MQTT broker 
+#		client.on_message = on_message
+#		client.connect(mqttBroker, 1883, 60)
+		deviceCli.publishEvent(event="greeting", msgFormat="json", data=myData)		
 		mqtt_connected = 1
 		printlog("MQTT client connected to broker")
 
