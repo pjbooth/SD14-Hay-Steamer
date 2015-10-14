@@ -16,7 +16,9 @@ import RPi.GPIO as GPIO
 import paho.mqtt.client as paho        #as instructed by http://mosquitto.org/documentation/python/
 from ConfigParser import SafeConfigParser
 import ibmiotf.device
-import openssl
+import iso8601
+import pytz
+import requests
 
 progname = sys.argv[0]
 configfile = "SD14Main.cfg"
