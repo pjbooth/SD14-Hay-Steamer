@@ -20,6 +20,9 @@ import iso8601
 import pytz
 import requests
 import OpenSSL
+import ssl
+import json
+import socket
 
 progname = sys.argv[0]
 configfile = "SD14Main.cfg"
