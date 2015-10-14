@@ -19,6 +19,7 @@ import ibmiotf.device
 import iso8601
 import pytz
 import requests
+import openSSL
 
 progname = sys.argv[0]
 configfile = "SD14Main.cfg"
