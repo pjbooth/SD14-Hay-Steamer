@@ -16,13 +16,7 @@ import RPi.GPIO as GPIO
 import paho.mqtt.client as paho        #as instructed by http://mosquitto.org/documentation/python/
 from ConfigParser import SafeConfigParser
 import ibmiotf.device
-import iso8601
-import pytz
-import requests
-import OpenSSL
-import ssl
-import json
-import socket
+
 
 progname = sys.argv[0]
 configfile = "SD14Main.cfg"
@@ -35,11 +29,8 @@ organization = "p4t75f"
 deviceType = "pjb-rpi"
 deviceId = "b827eba84426"
 authMethod = "token"
-authToken = "j0g64Ktw1W*zGnyqRg"
+authToken = "*eMiC02@KsQ)xCO2Tx"
 deviceOptions = {"org": organization, "type": deviceType, "id": deviceId, "auth-method": authMethod, "auth-token": authToken}
-x = 42
-myData = { 'hello' : 'world', 'x' : x}
-
 
 
 ####  here are the defs   ###################
@@ -60,13 +51,13 @@ def printlog(message):
 	logline = progname + " " + version + " " + datetime.datetime.now().strftime(dateString) + ": " + message
 	print logline	
 	if mqtt_connected == 1 and diagnostics == 1:
-#		client.publish(topicLog, payload=logline, qos=0, retain=False)
-		deviceCli.publishEvent(event="greeting", msgFormat="json", data=logline)
+		myData={'name' : progname, 'version' : version, 'date' : datetime.datetime.now().strftime(dateString), 'message' : message}
+		client.publishEvent(event="logs", msgFormat="json", data=myData)
 
 
-def printdata(message):
-	print(topicData + ": " + message)	
-	client.publish(topicData, payload=message, qos=0, retain=False)
+def printdata(temp):
+	myData={'date' : datetime.datetime.now().strftime(dateString), 'temp' : temp}
+	client.publishEvent(event="data", msgFormat="json", data=myData)
 
 
 # The callback for when the client receives a CONNACK response from the server.
@@ -85,37 +76,10 @@ def on_message(client, userdata, msg):
 		reqnum = int(cmd)
 	except ValueError:
 		reqnum = 0
-	requests[reqnum]()        #  execute the requested subroutine
 	printlog(msg.topic+" "+str(msg.payload))
 
 
-def badrequest():
-	printlog("Requests must be an integer between 1 and 2 inclusive")
-
-
-def diagon():
-	global diagnostics
-	diagnostics = 1
-	print "turning diag on"
-
-
-def diagoff():
-	global diagnostics
-	diagnostics = 0
-	print "turning diag off"
-
-
-def dummy():
-	dummyline = "this does not do anything"
-
 ###########  end of defs  ##################
-
-requests = {0 : badrequest,
-			1 : dummy,
-			2 : dummy,
-			3 : diagon,
-			4 : diagoff
-}
 
 
 GPIO.setmode(GPIO.BCM) 
@@ -126,21 +90,13 @@ try:
 	parser = SafeConfigParser()										# open and read the configuration file
 	parser.read(configfile)
 	version = parser.get('SD14Main', 'version')
-	mqttBroker = parser.get('SD14Main', 'mqttBroker')
-	topicRequest = parser.get('SD14Main', 'topicRequest')
-	topicData = parser.get('SD14Main', 'topicData')
-	topicLog = parser.get('SD14Main', 'topicLog')
 	delay = parser.getint('SD14Main', 'delay')
 	printlog(progname + " starting up")							# startup messag
 
-	try:     									# Create the MQTT client, connect to the broker and start threaded loop in background
+	try:     									# Create the MQTT client, connect to the IOTF broker and start threaded loop in background
 		global client
-#		client = paho.Client()           			# as instructed by http://mosquitto.org/documentation/python/
-		deviceCli = ibmiotf.device.Client(deviceOptions)
-#		client.on_connect = on_connect				# Connect to the MQTT broker 
-#		client.on_message = on_message
-#		client.connect(mqttBroker, 1883, 60)
-		deviceCli.publishEvent(event="greeting", msgFormat="json", data=myData)		
+		client = ibmiotf.device.Client(deviceOptions)
+		client.connect()
 		mqtt_connected = 1
 		printlog("MQTT client connected to broker")
 
