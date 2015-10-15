@@ -123,10 +123,12 @@ try:
 			while keep_running == 1:
 				sensor = 1
 				for device in w1_device_list:
+					print("About to read temp")
 					temperature = '%d' % read_temp(device)
+					print ("Read temp: " + temperature)
 					sensor += 1
-				printdata(temperature)
-				client.loop(timeout=1.0, max_packets=1)
+#				printdata(temperature)
+#				client.loop(timeout=1.0, max_packets=1)
 				time.sleep(delay)
 
 		except KeyboardInterrupt:
