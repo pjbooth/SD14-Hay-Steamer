@@ -127,7 +127,7 @@ try:
 					temperature = '%d' % read_temp(device)
 					print ("Read temp: " + temperature)
 					sensor += 1
-#				printdata(temperature)
+				printdata(temperature)
 #				client.loop(timeout=1.0, max_packets=1)
 				time.sleep(delay)
 
