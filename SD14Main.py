@@ -20,7 +20,7 @@ import ibmiotf.device
 
 progname = sys.argv[0]						# name of this program
 version = "2.0"								# allows me to track which release is running
-delay = 30									# number of seconds between readings
+interval = 30								# number of seconds between readings
 iotfFile = "/home/pi/SD14IOTF.cfg"
 dateString = '%Y/%m/%d %H:%M:%S'
 timeString = '%H:%M:%S'
@@ -56,14 +56,6 @@ def printdata(temp):
 	client.publishEvent(event="data", msgFormat="json", data=myData)
 
 
-# The callback for when the client receives a CONNACK response from the server.
-def on_connect(client, userdata, rc):
-	print("Connected with result code "+str(rc))
-	# Subscribing in on_connect() means that if we lose the connection and
-	# reconnect then subscriptions will be renewed.
-	client.subscribe(topicRequest)
-
-
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
 	global parms
@@ -73,6 +65,20 @@ def on_message(client, userdata, msg):
 	except ValueError:
 		reqnum = 0
 	printlog(msg.topic+" "+str(msg.payload))
+	
+
+def myCommandCallback(cmd):						# callback example from IOTF documentation
+  print("Command received: %s" % cmd.data)
+  if cmd.command == "setInterval":
+    if 'interval' not in cmd.data:
+      print("Error - command is missing required information: 'interval'")
+    else:
+      interval = cmd.data['interval']
+  elif cmd.command == "print":
+    if 'message' not in cmd.data:
+      print("Error - command is missing required information: 'message'")
+    else:
+      print(cmd.data['message'])
 
 
 ###########  end of defs  ##################
@@ -91,7 +97,10 @@ try:
 		client = ibmiotf.device.Client(deviceOptions)
 		client.connect()
 		mqtt_connected = 1
-		printlog("MQTT client connected to broker")
+		printlog("Client connected to IOTF")
+		client.commandCallback = myCommandCallback
+		printlog("Client IOTF callback connected")
+
 
 		try:
 			w1_devices = os.listdir("/sys/bus/w1/devices/")
@@ -120,7 +129,7 @@ try:
 					printdata(temperature)
 					sensor += 1
 #				client.loop(timeout=1.0, max_packets=1)
-				time.sleep(delay)
+				time.sleep(interval)
 
 		except KeyboardInterrupt:
 			printlog("Exiting after Ctrl-C")
