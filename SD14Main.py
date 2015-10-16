@@ -132,7 +132,7 @@ try:
 		printlog("Cannot start MQTT client and connect to MQ broker")
 
 except:
-	printlog("Unable to process configuration file " + configfile)
+	printlog("Unable to process configuration file " + iotfFile)
 
 finally:
 	GPIO.cleanup()     # this ensures a clean exit	
