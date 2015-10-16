@@ -20,17 +20,12 @@ import ibmiotf.device
 
 progname = sys.argv[0]
 configfile = "SD14Main.cfg"
+iotfFile = "/home/pi/SD14IOTF.cfg
 dateString = '%Y/%m/%d %H:%M:%S'
 timeString = '%H:%M:%S'
 keep_running = 1
 mqtt_connected = 0
 diagnostics = 1
-organization = "p4t75f"
-deviceType = "pjb-rpi"
-deviceId = "b827eba84426"
-authMethod = "token"
-authToken = "*eMiC02@KsQ)xCO2Tx"
-deviceOptions = {"org": organization, "type": deviceType, "id": deviceId, "auth-method": authMethod, "auth-token": authToken}
 
 
 ####  here are the defs   ###################
@@ -91,6 +86,7 @@ try:
 	parser.read(configfile)
 	version = parser.get('SD14Main', 'version')
 	delay = parser.getint('SD14Main', 'delay')
+	deviceOptions = ibmiotf.device.ParseConfigFile(iotfFile)		# keeping the IOTF config file locally on device for security
 	printlog(progname + " starting up")							# startup messag
 
 	try:     									# Create the MQTT client, connect to the IOTF broker and start threaded loop in background
