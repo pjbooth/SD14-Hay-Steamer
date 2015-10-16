@@ -18,8 +18,9 @@ from ConfigParser import SafeConfigParser
 import ibmiotf.device
 
 
-progname = sys.argv[0]
-configfile = "SD14Main.cfg"
+progname = sys.argv[0]						# name of this program
+version = 2.0								# allows me to track which release is running
+delay = 30									# number of seconds between readings
 iotfFile = "/home/pi/SD14IOTF.cfg
 dateString = '%Y/%m/%d %H:%M:%S'
 timeString = '%H:%M:%S'
@@ -78,16 +79,12 @@ def on_message(client, userdata, msg):
 
 
 GPIO.setmode(GPIO.BCM) 
-GPIO.setup(23, GPIO.OUT) # 23 for LDR light sensor
+GPIO.setup(23, GPIO.OUT) 										# 23 for LDR light sensor
 
 
 try:
-	parser = SafeConfigParser()										# open and read the configuration file
-	parser.read(configfile)
-	version = parser.get('SD14Main', 'version')
-	delay = parser.getint('SD14Main', 'delay')
-	deviceOptions = ibmiotf.device.ParseConfigFile(iotfFile)		# keeping the IOTF config file locally on device for security
-	printlog(progname + " starting up")							# startup messag
+	deviceOptions = ibmiotf.device.ParseConfigFile(iotfFile)	# keeping the IOTF config file locally on device for security
+	printlog(progname + " starting up")							# startup message
 
 	try:     									# Create the MQTT client, connect to the IOTF broker and start threaded loop in background
 		global client
