@@ -56,17 +56,6 @@ def printdata(temp):
 	client.publishEvent(event="data", msgFormat="json", data=myData)
 
 
-# The callback for when a PUBLISH message is received from the server.
-def on_message(client, userdata, msg):
-	global parms
-	try:
-		cmd = msg.payload
-		reqnum = int(cmd)
-	except ValueError:
-		reqnum = 0
-	printlog(msg.topic+" "+str(msg.payload))
-	
-
 def myCommandCallback(cmd):						# callback example from IOTF documentation
 	print("Command received: %s" % cmd.command)
 	print("Data received: %s" % cmd.data)
@@ -75,7 +64,11 @@ def myCommandCallback(cmd):						# callback example from IOTF documentation
 		if 'interval' not in cmd.data:
 			print("Error - command is missing required information: 'interval'")
 		else:
-			interval = cmd.data['interval']
+			try:
+				i = int(cmd.data['interval'])
+				interval = i
+			except:
+				printlog("Invalid interval value")
 	elif cmd.command == "print":
 		if 'message' not in cmd.data:
 			print("Error - command is missing required information: 'message'")
