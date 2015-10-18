@@ -57,6 +57,7 @@ def printdata(temp):
 
 
 def myCommandCallback(cmd):						# callback example from IOTF documentation
+	global interval
 	print("Command received: %s" % cmd.command)
 	print("Data received: %s" % cmd.data)
 
