@@ -84,7 +84,7 @@ def myCommandCallback(cmd):						# callback example from IOTF documentation
 		shutdown()
 
 	else:
-		printlog:("Unsupported command: %s" % cmd.command)
+		printlog("Unsupported command: %s" % cmd.command)
 
 
 def shutdown():
