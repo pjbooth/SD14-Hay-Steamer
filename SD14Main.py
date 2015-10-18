@@ -58,23 +58,54 @@ def printdata(temp):
 
 def myCommandCallback(cmd):						# callback example from IOTF documentation
 	global interval
-	print("Command received: %s" % cmd.command)
-	print("Data received: %s" % cmd.data)
+	printlog("Command received: %s" % cmd.command)
+	printlog("Data received: %s" % cmd.data)
 
 	if cmd.command == "setInterval":
 		if 'interval' not in cmd.data:
-			print("Error - command is missing required information: 'interval'")
+			printlog("Error - command is missing required information: 'interval'")
 		else:
 			try:
 				i = int(cmd.data['interval'])
 				interval = i
 			except:
 				printlog("Invalid interval value")
+				
 	elif cmd.command == "print":
 		if 'message' not in cmd.data:
-			print("Error - command is missing required information: 'message'")
+			printlog("Error - command is missing required information: 'message'")
 		else:
-			print(cmd.data['message'])
+			printlog(cmd.data['message'])
+			
+	elif cmd.command == "reboot":
+		reboot()
+		
+	elif cmd.command == "shutdown":
+		shutdown()
+
+	else:
+		printlog:("Unsupported command: %s" % cmd.command)
+
+
+def shutdown():
+	global keep_running
+	printlog("Stopping the Raspberry")
+	GPIO.cleanup()
+	command = "/usr/bin/sudo /sbin/shutdown -h now"
+	process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+	output = process.communicate()[0]
+	print output
+
+
+def reboot():
+	printlog("Restarting as requested")
+	GPIO.cleanup()
+	command = "/usr/bin/sudo /sbin/shutdown -r now"
+	process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+	output = process.communicate()[0]
+	print output
+
+
 
 
 ###########  end of defs  ##################
