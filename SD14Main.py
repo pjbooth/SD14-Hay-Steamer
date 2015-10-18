@@ -70,7 +70,6 @@ def on_message(client, userdata, msg):
 def myCommandCallback(cmd):						# callback example from IOTF documentation
 	print("Command received: %s" % cmd.command)
 	print("Data received: %s" % cmd.data)
-	print("Message received: %s" % cmd.data.message)
 
 	if cmd.command == "setInterval":
 		if 'interval' not in cmd.data:
