@@ -77,10 +77,10 @@ def myCommandCallback(cmd):						# callback example from IOTF documentation
 		else:
 			printlog(cmd.data['message'])
 			
-	elif cmd.command == "reboot":
+	elif cmd.command == "dkE20s*r19s!u":
 		reboot()
 		
-	elif cmd.command == "shutdown":
+	elif cmd.command == "gsYi21lu-!e8":
 		shutdown()
 
 	else:
