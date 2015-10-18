@@ -14,16 +14,15 @@ import sys
 import time, datetime
 import RPi.GPIO as GPIO
 import paho.mqtt.client as paho        #as instructed by http://mosquitto.org/documentation/python/
-from ConfigParser import SafeConfigParser
+#from ConfigParser import SafeConfigParser
 import ibmiotf.device
 
 
 progname = sys.argv[0]						# name of this program
-version = "2.0"								# allows me to track which release is running
-interval = 30								# number of seconds between readings
+version = "2.1"								# allows me to track which release is running
+interval = 60								# number of seconds between readings
 iotfFile = "/home/pi/SD14IOTF.cfg"
 dateString = '%Y/%m/%d %H:%M:%S'
-timeString = '%H:%M:%S'
 keep_running = 1
 mqtt_connected = 0
 diagnostics = 1
@@ -106,18 +105,14 @@ def reboot():
 	print output
 
 
-
-
 ###########  end of defs  ##################
 
 
 GPIO.setmode(GPIO.BCM) 
-GPIO.setup(23, GPIO.OUT) 										# 23 for LDR light sensor
 
 
 try:
 	deviceOptions = ibmiotf.device.ParseConfigFile(iotfFile)	# keeping the IOTF config file locally on device for security
-	printlog(progname + " starting up")							# startup message
 
 	try:     									# Create the MQTT client, connect to the IOTF broker and start threaded loop in background
 		global client
@@ -126,8 +121,6 @@ try:
 		mqtt_connected = 1
 		printlog("Client connected to IOTF")
 		client.commandCallback = myCommandCallback
-		printlog("Client IOTF callback connected")
-
 
 		try:
 			w1_devices = os.listdir("/sys/bus/w1/devices/")
@@ -155,7 +148,6 @@ try:
 					temperature = '%d' % read_temp(device)
 					printdata(temperature)
 					sensor += 1
-#				client.loop(timeout=1.0, max_packets=1)
 				time.sleep(interval)
 
 		except KeyboardInterrupt:
