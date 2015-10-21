@@ -20,7 +20,7 @@ import ibmiotf.device
 
 progname = sys.argv[0]						# name of this program
 version = "2.2"								# allows me to track which release is running
-interval = 60								# number of seconds between readings
+interval = 5								# number of seconds between readings
 iotfFile = "/home/pi/SD14IOTF.cfg"
 dateString = '%Y/%m/%d %H:%M:%S'
 keep_running = 1
