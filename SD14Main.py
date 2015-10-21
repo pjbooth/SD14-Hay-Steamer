@@ -19,7 +19,7 @@ import ibmiotf.device
 
 
 progname = sys.argv[0]						# name of this program
-version = "2.1"								# allows me to track which release is running
+version = "2.2"								# allows me to track which release is running
 interval = 60								# number of seconds between readings
 iotfFile = "/home/pi/SD14IOTF.cfg"
 dateString = '%Y/%m/%d %H:%M:%S'
@@ -51,8 +51,9 @@ def printlog(message):
 
 
 def printdata(temp):
-	myData={'date' : datetime.datetime.now().strftime(dateString), 'temp' : temp}
-	client.publishEvent(event="data", msgFormat="json", data=myData)
+	myData = {'date' : datetime.datetime.now().strftime(dateString), 'temp' : temp}
+	vizData = {'d' : myData}
+	client.publishEvent(event="data", msgFormat="json", data=vizData)
 
 
 def myCommandCallback(cmd):						# callback example from IOTF documentation
@@ -119,7 +120,6 @@ try:
 		client = ibmiotf.device.Client(deviceOptions)
 		client.connect()
 		mqtt_connected = 1
-		printlog("Client connected to IOTF")
 		client.commandCallback = myCommandCallback
 
 		try:
