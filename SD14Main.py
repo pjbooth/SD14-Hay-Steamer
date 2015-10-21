@@ -145,8 +145,9 @@ try:
 			while keep_running == 1:
 				sensor = 1
 				for device in w1_device_list:
-					temperature = '%d' % read_temp(device)
-					printdata(temperature)
+#					temperature = '%d' % read_temp(device)
+#					printdata(temperature)
+					printdata(read_temp(device))
 					sensor += 1
 				time.sleep(interval)
 
