@@ -28,7 +28,6 @@ state = 0									# keep track of which state we are in
 											# state 1 = R   = Up and connected to IOTF but steamer not turned on
 											# state 2 = A   = Steamer switched on but not yet reached target temperature
 											# state 3 = G   = Target temperature reached
-keep_running = 1
 mqtt_connected = 0
 diagnostics = 1
 target = 25									# target temperature
@@ -70,7 +69,7 @@ def printdata(data):
 
 def myCommandCallback(cmd):						# callback example from IOTF documentation
 	global state
-	printlog("Command received: %s with data: %s" % cmd.command, cmd.data)
+	printlog("Command received: " + cmd.command + " with data: " + cmd.data)
 	if cmd.command == "setState":
 		if 'state' not in cmd.data:
 			printlog("Error - command is missing required information: 'state'")
@@ -92,8 +91,6 @@ def myCommandCallback(cmd):						# callback example from IOTF documentation
 
 
 def shutdown():
-	global keep_running
-	printlog("Stopping the Raspberry")
 	GPIO.cleanup()
 	command = "/usr/bin/sudo /sbin/shutdown -h now"
 	process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
@@ -155,7 +152,7 @@ try:
 		state = 1
 
 		try:
-			while keep_running == 1:
+			while state < 10:							# Use state 10 to request a controlled termination of program
 				if state == 1:
 					GPIO.output(redLED, 1)
 					GPIO.output(amberLED, 0)
