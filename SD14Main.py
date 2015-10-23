@@ -64,7 +64,7 @@ def printdata(data):
 	global state
 	myData = {'date' : datetime.datetime.now().strftime(dateString), 'temp' : data, 'state' : state}
 	vizData = {'d' : myData}
-	client.publishEvent(event="data", msgFormat="json", data=vizData)
+	client.publishEvent(event="data", msgFormat="json", data=myData)
 
 
 def myCommandCallback(cmd):						# callback example from IOTF documentation
