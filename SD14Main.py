@@ -161,7 +161,7 @@ try:
 				this_device = "/sys/bus/w1/devices/" + device + "/w1_slave"
 				w1_device_list.append(this_device)
 		state = 1
-		printdata(state,0)								# Inform that we have reached state 1
+		printdata(0)								# Inform that we have reached state 1
 
 		try:
 			while keep_running == 1:
