@@ -69,7 +69,7 @@ def printdata(data):
 
 def myCommandCallback(cmd):						# callback example from IOTF documentation
 	global state
-	printlog("Command received: " + cmd.command + " with data: " + cmd.data)
+	printlog("Command received: " + cmd.command + " with data: %s" % cmd.data)
 	if cmd.command == "setState":
 		if 'state' not in cmd.data:
 			printlog("Error - command is missing required information: 'state'")
