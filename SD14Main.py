@@ -192,10 +192,14 @@ try:
 							printdata(t)
 						if t > target:
 							state = 3
-						input_state = GPIO.input(buttonReset)		# Check in passing to see if the Reset button is pressed
-						if input_state == False:
-							state = 1								# go back to State 1
-						time.sleep(interval)
+						i = interval * 5				# the button read loop happens 5 times per second
+						while i > 0:					# Wait 'interval' seconds whilst watching the Reset button
+							i -= 1
+							input_state = GPIO.input(buttonReset)		# Spend the interval checking if the Reset button is pressed
+							if input_state == False:
+								state = 1								# go back to State 1
+								break
+							time.sleep(0.2)
 
 				elif state == 3:
 					GPIO.output(redLED, 0)
