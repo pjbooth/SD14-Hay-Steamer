@@ -161,7 +161,9 @@ try:
 				this_device = "/sys/bus/w1/devices/" + device + "/w1_slave"
 				w1_device_list.append(this_device)
 		state = 1
-		printdata(0)								# Inform that we have reached state 1
+		for device in w1_device_list:
+			t = read_temp(device)
+		printdata(t)								# Inform that we have reached state 1
 
 		try:
 			while keep_running == 1:
@@ -169,16 +171,18 @@ try:
 					GPIO.output(redLED, 1)
 					GPIO.output(amberLED, 0)
 					GPIO.output(greenLED, 0)
-					i = 0
+					i = 300
 					while state == 1:								# Wait for Steam button to be pressed
+						i += 1
+						if i > 300:									# every minute....
+							for device in w1_device_list:
+								t = read_temp(device)
+							printdata(t)							# Keep the user informed of our state
+							i = 0
 						input_state = GPIO.input(buttonSteam)
 						if input_state == False:
 							state = 2
 						time.sleep(0.2)
-						i += 1
-						if i > 300:						# every minute....
-							printdata(0)			# Keep the user informed of our state
-							i = 0
 
 				elif state == 2:
 					GPIO.output(redLED, 0)
@@ -203,12 +207,12 @@ try:
 					GPIO.output(greenLED, 1)
 					i = 300
 					while state == 3:
-						if i == 300:						# every minute....
+						i += 1
+						if i > 300:						# every minute....
 							for device in w1_device_list:
 								t = read_temp(device)
 							printdata(t)				# Keep the user informed of our state
 							i = 0
-						i += 1
 						input_state = GPIO.input(buttonReset)			# Wait until the Reset button is pressed
 						if input_state == False:
 							state = 1
