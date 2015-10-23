@@ -36,7 +36,7 @@ greenLED = 23
 amberLED = 24
 redLED = 25
 buttonSteam = 7
-buttonCancel = 8
+buttonReset = 8
 
 
 ####  here are the defs   ###################
@@ -122,7 +122,7 @@ def reboot():
 
 GPIO.setmode(GPIO.BCM) 
 GPIO.setup(buttonSteam, GPIO.IN, pull_up_down=GPIO.PUD_UP)		# Push button 1
-GPIO.setup(buttonCancel, GPIO.IN, pull_up_down=GPIO.PUD_UP)		# Push button 2
+GPIO.setup(buttonReset, GPIO.IN, pull_up_down=GPIO.PUD_UP)		# Push button 2
 GPIO.setup(greenLED, GPIO.OUT)								# LED 1
 GPIO.setup(amberLED, GPIO.OUT)								# LED 2
 GPIO.setup(redLED, GPIO.OUT)								# LED 3
@@ -159,41 +159,46 @@ try:
 			if not ('w1_bus' in device):				        # create string for calling each device and append to list
 				this_device = "/sys/bus/w1/devices/" + device + "/w1_slave"
 				w1_device_list.append(this_device)
-
+		state = 1
 
 		try:
 			while keep_running == 1:
-				state = 1
-				GPIO.output(redLED, 1)
-				GPIO.output(amberLED, 0)
-				GPIO.output(greenLED, 0)
-				while state == 1:
-					input_state = GPIO.input(buttonSteam)
-					if input_state == False:
-						while state == 1:
-							input_state = GPIO.input(buttonSteam)
-							if input_state == False:
-								state = 2
+				if state == 1:
+					GPIO.output(redLED, 1)
+					GPIO.output(amberLED, 0)
+					GPIO.output(greenLED, 0)
+					while state == 1:											# Wait for Steam button to be pressed
+						input_state = GPIO.input(buttonSteam)
+						if input_state == False:
+							state = 2
 						time.sleep(0.2)
-					time.sleep(0.2)
 
-				GPIO.output(redLED, 0)
-				GPIO.output(amberLED, 1)
-				GPIO.output(greenLED, 0)			
-				t = -100							# start with an absurdly low temperature until first reading is captured so loop works
-				while t < target:
-					sensor = 1
-					for device in w1_device_list:
-						t = read_temp(device)
-						printdata(t)
-						sensor += 1
-					time.sleep(interval)
+				elif state == 2:
+					GPIO.output(redLED, 0)
+					GPIO.output(amberLED, 1)
+					GPIO.output(greenLED, 0)			
+					t = -100							# start with an absurdly low temperature until first reading is captured so loop works
+					while t < target:
+						sensor = 1
+						for device in w1_device_list:
+							t = read_temp(device)
+							printdata(t)
+							sensor += 1
+						time.sleep(interval)
+						input_state = GPIO.input(buttonReset)		# Check in passing to see if the Reset button is pressed
+						if input_state == False:
+							state = 1								# go back to State 1
+					state = 3										# reached target temperature so set state = 3
 
-				state = 3
+				elif state == 3:
 				GPIO.output(redLED, 0)
 				GPIO.output(amberLED, 0)
 				GPIO.output(greenLED, 1)
-				time.sleep(20)
+				while state == 3:
+					input_state = GPIO.input(buttonReset)			# Wait until the Reset button is pressed
+					if input_state == False:
+						state = 1
+					time.sleep(0.2)
 
 		except KeyboardInterrupt:
 			printlog("Exiting after Ctrl-C")
