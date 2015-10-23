@@ -191,14 +191,14 @@ try:
 					state = 3										# reached target temperature so set state = 3
 
 				elif state == 3:
-				GPIO.output(redLED, 0)
-				GPIO.output(amberLED, 0)
-				GPIO.output(greenLED, 1)
-				while state == 3:
-					input_state = GPIO.input(buttonReset)			# Wait until the Reset button is pressed
-					if input_state == False:
-						state = 1
-					time.sleep(0.2)
+					GPIO.output(redLED, 0)
+					GPIO.output(amberLED, 0)
+					GPIO.output(greenLED, 1)
+					while state == 3:
+						input_state = GPIO.input(buttonReset)			# Wait until the Reset button is pressed
+						if input_state == False:
+							state = 1
+						time.sleep(0.2)
 
 		except KeyboardInterrupt:
 			printlog("Exiting after Ctrl-C")
