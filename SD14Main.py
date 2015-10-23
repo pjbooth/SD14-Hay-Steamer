@@ -31,12 +31,12 @@ state = 0									# keep track of which state we are in
 keep_running = 1
 mqtt_connected = 0
 diagnostics = 1
-target = 90									# target temperature
+target = 20									# target temperature
 greenLED = 23
 amberLED = 24
 redLED = 25
-button1 = 7
-button2 = 8
+buttonSteam = 7
+buttonCancel = 8
 
 
 ####  here are the defs   ###################
@@ -121,8 +121,8 @@ def reboot():
 
 
 GPIO.setmode(GPIO.BCM) 
-GPIO.setup(button1, GPIO.IN, pull_up_down=GPIO.PUD_UP)		# Push button 1
-GPIO.setup(button2, GPIO.IN, pull_up_down=GPIO.PUD_UP)		# Push button 2
+GPIO.setup(buttonSteam, GPIO.IN, pull_up_down=GPIO.PUD_UP)		# Push button 1
+GPIO.setup(buttonCancel, GPIO.IN, pull_up_down=GPIO.PUD_UP)		# Push button 2
 GPIO.setup(greenLED, GPIO.OUT)								# LED 1
 GPIO.setup(amberLED, GPIO.OUT)								# LED 2
 GPIO.setup(redLED, GPIO.OUT)								# LED 3
@@ -167,19 +167,16 @@ try:
 				GPIO.output(redLED, 1)
 				GPIO.output(amberLED, 0)
 				GPIO.output(greenLED, 0)
-				count = 0
-				while count < 10:
-					input_state = GPIO.input(button1)
+				while state == 1:
+					input_state = GPIO.input(buttonSteam)
 					if input_state == False:
-						printlog('Button 1 Pressed')
-						count += 1
-					input_state = GPIO.input(button2)
-					if input_state == False:
-						printlog('Button 2 Pressed')
-						count += 1
-					time.sleep(1)
+						while state == 1:
+							input_state = GPIO.input(buttonSteam)
+							if input_state == False:
+								state == 2:
+						time.sleep(0.2)
+					time.sleep(0.2)
 
-				state = 2
 				GPIO.output(redLED, 0)
 				GPIO.output(amberLED, 1)
 				GPIO.output(greenLED, 0)			
