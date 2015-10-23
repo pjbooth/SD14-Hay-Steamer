@@ -23,9 +23,20 @@ version = "2.2"								# allows me to track which release is running
 interval = 5								# number of seconds between readings
 iotfFile = "/home/pi/SD14IOTF.cfg"
 dateString = '%Y/%m/%d %H:%M:%S'
+state = 0									# keep track of which state we are in
+											# state 0 = RAG = booting up 
+											# state 1 = R   = Up and connected to IOTF but steamer not turned on
+											# state 2 = A   = Steamer switched on but not yet reached target temperature
+											# state 3 = G   = Target temperature reached
 keep_running = 1
 mqtt_connected = 0
 diagnostics = 1
+target = 90									# target temperature
+greenLED = 23
+amberLED = 24
+redLED = 25
+button1 = 7
+button2 = 8
 
 
 ####  here are the defs   ###################
@@ -51,7 +62,7 @@ def printlog(message):
 
 
 def printdata(temp):
-	myData = {'date' : datetime.datetime.now().strftime(dateString), 'temp' : temp}
+	myData = {'date' : datetime.datetime.now().strftime(dateString), 'temp' : temp, 'state' : state}
 	vizData = {'d' : myData}
 	client.publishEvent(event="data", msgFormat="json", data=vizData)
 
@@ -76,21 +87,13 @@ def myCommandCallback(cmd):						# callback example from IOTF documentation
 			printlog("Error - command is missing required information: 'message'")
 		else:
 			printlog(cmd.data['message'])
-			
+
 	elif cmd.command == "dkE20s*r19s!u":
 		reboot()
-		
+
 	elif cmd.command == "gsYi21lu-!e8":
 		shutdown()
-		
-	elif cmd.command == "LED":
-		for x in range(0,5):
-			for i in range(23,26):
-				GPIO.output(i, 1)         # set GPIO24 to 1/GPIO.HIGH/True
-				sleep(0.5)                 # wait half a second
-				GPIO.output(i, 0)         # set GPIO24 to 0/GPIO.LOW/False
-				sleep(0.5)                 # wait half a second
-		
+
 	else:
 		printlog("Unsupported command: %s" % cmd.command)
 
@@ -118,11 +121,14 @@ def reboot():
 
 
 GPIO.setmode(GPIO.BCM) 
-GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_UP)		# Push switch 1
-GPIO.setup(8, GPIO.IN, pull_up_down=GPIO.PUD_UP)		# Push switch 2
-GPIO.setup(23, GPIO.OUT)								# LED 1
-GPIO.setup(24, GPIO.OUT)								# LED 2
-GPIO.setup(25, GPIO.OUT)								# LED 3
+GPIO.setup(button1, GPIO.IN, pull_up_down=GPIO.PUD_UP)		# Push button 1
+GPIO.setup(button2, GPIO.IN, pull_up_down=GPIO.PUD_UP)		# Push button 2
+GPIO.setup(greenLED, GPIO.OUT)								# LED 1
+GPIO.setup(amberLED, GPIO.OUT)								# LED 2
+GPIO.setup(redLED, GPIO.OUT)								# LED 3
+GPIO.output(greenLED, 1)									# Turn on LED to confirm it works
+GPIO.output(amberLED, 1)									# Turn on LED to confirm it works
+GPIO.output(redLED, 1)									# Turn on LED to confirm it works
 
 
 try:
@@ -154,20 +160,40 @@ try:
 				this_device = "/sys/bus/w1/devices/" + device + "/w1_slave"
 				w1_device_list.append(this_device)
 
+
 		try:
 			while keep_running == 1:
-				sensor = 1
-				for device in w1_device_list:
-#					temperature = '%d' % read_temp(device)
-#					printdata(temperature)
-					printdata(read_temp(device))
-					sensor += 1
-					for i in range(23,26):
-						GPIO.output(i, 1)         # set GPIO24 to 1/GPIO.HIGH/True
-						time.sleep(0.5)           # wait half a second
-						GPIO.output(i, 0)         # set GPIO24 to 0/GPIO.LOW/False
-						time.sleep(0.5)           # wait half a second
-				time.sleep(interval)
+				state = 1
+				GPIO.output(redLED, 1)
+				GPIO.output(amberLED, 0)
+				GPIO.output(greenLED, 0)
+				while count < 10:
+					input_state = GPIO.input(button1)
+					if input_state == False:
+						printlog('Button 1 Pressed')
+					input_state = GPIO.input(button2)
+					if input_state == False:
+						printlog('Button 2 Pressed')
+					time.sleep(1)
+
+				state = 2
+				GPIO.output(redLED, 0)
+				GPIO.output(amberLED, 1)
+				GPIO.output(greenLED, 0)			
+				t = -100							# start with an absurdly low temperature until first reading is captured so loop works
+				while t < target:
+					sensor = 1
+					for device in w1_device_list:
+						t = read_temp(device)
+						printdata(t)
+						sensor += 1
+					time.sleep(interval)
+
+				state = 3
+				GPIO.output(redLED, 0)
+				GPIO.output(amberLED, 0)
+				GPIO.output(greenLED, 1)
+				time.sleep(20)
 
 		except KeyboardInterrupt:
 			printlog("Exiting after Ctrl-C")
@@ -182,5 +208,6 @@ except:
 	printlog("Unable to process configuration file " + iotfFile)
 
 finally:
+	printlog("Closing program as requested")
 	GPIO.cleanup()     # this ensures a clean exit	
 
