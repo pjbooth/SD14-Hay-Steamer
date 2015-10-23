@@ -83,7 +83,7 @@ def myCommandCallback(cmd):						# callback example from IOTF documentation
 			except:
 				printlog("Invalid interval value")
 
-	elif cmd.command == "setState"
+	elif cmd.command == "setState":
 		if 'state' not in cmd.data:
 			printlog("Error - command is missing required information: 'state'")
 		else:
