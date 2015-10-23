@@ -200,17 +200,16 @@ try:
 					GPIO.output(redLED, 0)
 					GPIO.output(amberLED, 0)
 					GPIO.output(greenLED, 1)
-					i = 0
+					i = 300
 					while state == 3:
+						if i == 300:						# every minute....
+							printdata(state,0)			# Keep the user informed of our state
+							i = 0
+						i += 1
 						input_state = GPIO.input(buttonReset)			# Wait until the Reset button is pressed
 						if input_state == False:
 							state = 1
 						time.sleep(0.2)
-						i += 1
-						if i > 300:						# every minute....
-							printdata(state,0)			# Keep the user informed of our state
-							i = 0
-
 
 		except KeyboardInterrupt:
 			printlog("Exiting after Ctrl-C")
