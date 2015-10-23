@@ -179,7 +179,6 @@ try:
 						input_state = GPIO.input(buttonSteam)
 						if input_state == False:
 							state = 2
-							break
 						time.sleep(0.2)
 
 				elif state == 2:
@@ -187,16 +186,16 @@ try:
 					GPIO.output(amberLED, 1)
 					GPIO.output(greenLED, 0)			
 					t = -100							# start with an absurdly low temperature until first reading is captured so loop works
-					while t < target:
+					while state == 2:
 						for device in w1_device_list:
 							t = read_temp(device)
 							printdata(t)
-						time.sleep(interval)
+						if t > target:
+							state = 3
 						input_state = GPIO.input(buttonReset)		# Check in passing to see if the Reset button is pressed
 						if input_state == False:
 							state = 1								# go back to State 1
-							break
-					state = 3										# reached target temperature so set state = 3
+						time.sleep(interval)
 
 				elif state == 3:
 					GPIO.output(redLED, 0)
@@ -213,7 +212,6 @@ try:
 						input_state = GPIO.input(buttonReset)			# Wait until the Reset button is pressed
 						if input_state == False:
 							state = 1
-							break
 						time.sleep(0.2)
 
 		except KeyboardInterrupt:
