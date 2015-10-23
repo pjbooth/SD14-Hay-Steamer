@@ -82,7 +82,15 @@ def myCommandCallback(cmd):						# callback example from IOTF documentation
 		
 	elif cmd.command == "gsYi21lu-!e8":
 		shutdown()
-
+		
+	elif cmd.command == "LED":
+		for x in range(0,5):
+			for i in range(23,26):
+				GPIO.output(i, 1)         # set GPIO24 to 1/GPIO.HIGH/True
+				sleep(0.5)                 # wait half a second
+				GPIO.output(i, 0)         # set GPIO24 to 0/GPIO.LOW/False
+				sleep(0.5)                 # wait half a second
+		
 	else:
 		printlog("Unsupported command: %s" % cmd.command)
 
@@ -110,6 +118,11 @@ def reboot():
 
 
 GPIO.setmode(GPIO.BCM) 
+GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_UP)		# Push switch 1
+GPIO.setup(8, GPIO.IN, pull_up_down=GPIO.PUD_UP)		# Push switch 2
+GPIO.setup(23, GPIO.OUT)								# LED 1
+GPIO.setup(24, GPIO.OUT)								# LED 2
+GPIO.setup(25, GPIO.OUT)								# LED 3
 
 
 try:
