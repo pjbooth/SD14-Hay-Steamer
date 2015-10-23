@@ -173,7 +173,7 @@ try:
 						while state == 1:
 							input_state = GPIO.input(buttonSteam)
 							if input_state == False:
-								state == 2:
+								state = 2
 						time.sleep(0.2)
 					time.sleep(0.2)
 
