@@ -167,13 +167,16 @@ try:
 				GPIO.output(redLED, 1)
 				GPIO.output(amberLED, 0)
 				GPIO.output(greenLED, 0)
+				count = 0
 				while count < 10:
 					input_state = GPIO.input(button1)
 					if input_state == False:
 						printlog('Button 1 Pressed')
+						count += 1
 					input_state = GPIO.input(button2)
 					if input_state == False:
 						printlog('Button 2 Pressed')
+						count += 1
 					time.sleep(1)
 
 				state = 2
