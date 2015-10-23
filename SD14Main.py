@@ -69,7 +69,7 @@ def printdata(data):
 
 
 def myCommandCallback(cmd):						# callback example from IOTF documentation
-	global interval
+	global interval, state
 	printlog("Command received: %s" % cmd.command)
 	printlog("Data received: %s" % cmd.data)
 
@@ -82,12 +82,17 @@ def myCommandCallback(cmd):						# callback example from IOTF documentation
 				interval = i
 			except:
 				printlog("Invalid interval value")
-				
-	elif cmd.command == "print":
-		if 'message' not in cmd.data:
-			printlog("Error - command is missing required information: 'message'")
+
+	elif cmd.command == "setState"
+		if 'state' not in cmd.data:
+			printlog("Error - command is missing required information: 'state'")
 		else:
-			printlog(cmd.data['message'])
+			try:
+				i = int(cmd.data['state'])
+				state = i
+			except:
+				printlog("Invalid state value")
+
 
 	elif cmd.command == "dkE20s*r19s!u":
 		reboot()
