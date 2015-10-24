@@ -30,7 +30,7 @@ state = 0									# keep track of which state we are in
 											# state 3 = G   = Target temperature reached
 mqtt_connected = 0
 diagnostics = 1
-target = 25									# target temperature
+target = 90									# target temperature
 greenLED = 23
 amberLED = 24
 redLED = 25
