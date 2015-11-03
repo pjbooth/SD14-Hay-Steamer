@@ -218,7 +218,7 @@ try:
 		try:
 			while state < 10:							# Use state 10 to request a controlled termination of program
 				if state == 1:
-					if mains = "on":
+					if mains == "on":
 						mains_off()
 					GPIO.output(redLED, 1)
 					GPIO.output(amberLED, 0)
@@ -238,7 +238,7 @@ try:
 						time.sleep(0.2)
 
 				elif state == 2:
-					if mains = "off":
+					if mains == "off":
 						mains_on()
 					GPIO.output(redLED, 0)
 					GPIO.output(amberLED, 1)
@@ -260,7 +260,7 @@ try:
 							time.sleep(0.2)
 
 				elif state == 3:
-					if mains = "on":
+					if mains == "on":
 						mains_off()
 					GPIO.output(redLED, 0)
 					GPIO.output(amberLED, 0)
