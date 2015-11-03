@@ -31,11 +31,12 @@ state = 0									# keep track of which state we are in
 mqtt_connected = 0
 diagnostics = 1
 target = 90									# target temperature
-greenLED = 23
-amberLED = 24
-redLED = 25
-buttonSteam = 7
-buttonReset = 8
+greenLED = 13								# These are GPIO numbers
+amberLED = 19
+redLED = 26
+buttonSteam = 20
+buttonReset = 16
+buzzer = 21
 
 
 ####  here are the defs   ###################
@@ -116,6 +117,7 @@ GPIO.setup(buttonReset, GPIO.IN, pull_up_down=GPIO.PUD_UP)		# Push button 2
 GPIO.setup(greenLED, GPIO.OUT)								# LED 1
 GPIO.setup(amberLED, GPIO.OUT)								# LED 2
 GPIO.setup(redLED, GPIO.OUT)								# LED 3
+GPIO.setup(buzzer, GPIO.OUT)								# Buzzer
 GPIO.output(greenLED, 1)									# Turn on LED to confirm it works
 GPIO.output(amberLED, 1)									# Turn on LED to confirm it works
 GPIO.output(redLED, 1)									# Turn on LED to confirm it works
@@ -197,7 +199,7 @@ try:
 					i = 300
 					while state == 3:
 						i += 1
-						if i > 300:						# every minute....
+						if i > 30:						# every minute....
 							for device in w1_device_list:
 								t = read_temp(device)
 							printdata(t)				# Keep the user informed of our state
@@ -205,7 +207,10 @@ try:
 						input_state = GPIO.input(buttonReset)			# Wait until the Reset button is pressed
 						if input_state == False:
 							state = 1
-						time.sleep(0.2)
+						GPIO.output(buzzer,1)			# sound the buzzer
+						time.sleep(0.5)
+						GPIO.output(buzzer,0)			# turn off the buzzer
+						time.sleep(0.5)
 
 		except KeyboardInterrupt:
 			printlog("Exiting after Ctrl-C")
