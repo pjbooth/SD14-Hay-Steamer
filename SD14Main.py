@@ -268,18 +268,21 @@ try:
 					i = 300
 					while state == 3:
 						i += 1
-						if i > 30:						# every minute....
+						if i > 280:						# every minute....  the buzzer takes 4 seconds, the loop 56 seconds at 5 times per second round the loop
 							for device in w1_device_list:
 								t = read_temp(device)
 							printdata(t)				# Keep the user informed of our state
+							for j in range(4):
+								GPIO.output(buzzer,1)			# sound the buzzer
+								time.sleep(0.5)
+								GPIO.output(buzzer,0)			# turn off the buzzer
+								time.sleep(0.5)
 							i = 0
 						input_state = GPIO.input(buttonReset)			# Wait until the Reset button is pressed
 						if input_state == False:
 							state = 1
-						GPIO.output(buzzer,1)			# sound the buzzer
-						time.sleep(0.5)
-						GPIO.output(buzzer,0)			# turn off the buzzer
-						time.sleep(0.5)
+						time.sleep(0.2)
+
 
 		except KeyboardInterrupt:
 			printlog("Exiting after Ctrl-C")
