@@ -37,7 +37,6 @@ redLED = 26
 buttonSteam = 20
 buttonReset = 16
 buzzer = 21
-mains = "on"								# this is a flag
 
 
 ####  here are the defs   ###################
@@ -135,7 +134,6 @@ def mains_init():
 
 def mains_on():
 	global mains
-	mains = "on"
 	# Set K0-K3
 	GPIO.output (17, True)
 	GPIO.output (22, True)
@@ -153,7 +151,6 @@ def mains_on():
 
 def mains_off():
 	global mains
-	mains = "off"
 	# Set K0-K3
 	GPIO.output (17, True)
 	GPIO.output (22, True)
@@ -218,8 +215,6 @@ try:
 		try:
 			while state < 10:							# Use state 10 to request a controlled termination of program
 				if state == 1:
-					if mains == "on":
-						mains_off()
 					GPIO.output(redLED, 1)
 					GPIO.output(amberLED, 0)
 					GPIO.output(greenLED, 0)
@@ -227,6 +222,7 @@ try:
 					while state == 1:								# Wait for Steam button to be pressed
 						i += 1
 						if i > 300:									# every minute....
+							mains_off()
 							for device in w1_device_list:
 								t = read_temp(device)
 							printdata(t)							# Keep the user informed of our state
@@ -238,13 +234,12 @@ try:
 						time.sleep(0.2)
 
 				elif state == 2:
-					if mains == "off":
-						mains_on()
 					GPIO.output(redLED, 0)
 					GPIO.output(amberLED, 1)
 					GPIO.output(greenLED, 0)			
 					t = -100							# start with an absurdly low temperature until first reading is captured so loop works
 					while state == 2:
+						mains_on()
 						for device in w1_device_list:
 							t = read_temp(device)
 							printdata(t)
@@ -260,13 +255,12 @@ try:
 							time.sleep(0.2)
 
 				elif state == 3:
-					if mains == "on":
-						mains_off()
 					GPIO.output(redLED, 0)
 					GPIO.output(amberLED, 0)
 					GPIO.output(greenLED, 1)
 					i = 300
 					while state == 3:
+						mains_off()
 						i += 1
 						if i > 280:						# every minute....  the buzzer takes 4 seconds, the loop 56 seconds at 5 times per second round the loop
 							for device in w1_device_list:
