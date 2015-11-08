@@ -51,7 +51,7 @@ def read_temp(device):
 	temperaturedata = secondline.split(" ")[9]	# Split the line into words, referring to the spaces, and select the 10th word (counting from 0).
 	temperature = float(temperaturedata[2:])	# The first two characters are "t=", so get rid of those and convert the temperature from a string to a number.
 	temperature = temperature / 1000			# Put the decimal point in the right place and display it.
-	printlog("Temperature is %d" % temperature)
+#	printlog("Temperature is %d" % temperature)
 	return temperature
 
 
