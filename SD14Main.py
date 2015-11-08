@@ -196,19 +196,14 @@ try:
 		client.commandCallback = myCommandCallback
 
 		try:
-			w1_devices = os.listdir("/sys/bus/w1/devices/")
+			output_mp1 = subprocess.Popen('sudo modprobe -r w1-gpio', shell=True, stdout=subprocess.PIPE)		# Just making sure we (re)start w1-gpio cleanly
+			time.sleep(5)		# wait a few seconds to stop the program storming ahead and crashing out
 		except:
-			printlog("Loading 1-wire device drivers, please wait five seconds...")
-			try:
-				output_mp1 = subprocess.Popen('sudo modprobe -r w1-gpio', shell=True, stdout=subprocess.PIPE)		# remove
-				printlog("Just making sure we (re)start w1-gpio cleanly")
-				time.sleep(5)
-			except:
-				pass			# in case we try to unload the module but it's not loaded, that's OK; it's clean so no need to handle exception
-			output_mp1 = subprocess.Popen('sudo modprobe w1-gpio', shell=True, stdout=subprocess.PIPE)
-			output_mp2 = subprocess.Popen('sudo modprobe w1-therm', shell=True, stdout=subprocess.PIPE)
-			time.sleep(5)        									# wait a few seconds to stop the program storming ahead and crashing out
-			w1_devices = os.listdir("/sys/bus/w1/devices/")
+			pass			# in case we try to unload the module but it's not loaded, that's OK; it's clean so no need to handle exception
+		output_mp1 = subprocess.Popen('sudo modprobe w1-gpio', shell=True, stdout=subprocess.PIPE)
+		output_mp2 = subprocess.Popen('sudo modprobe w1-therm', shell=True, stdout=subprocess.PIPE)
+		time.sleep(5)        # wait a few seconds to stop the program storming ahead and crashing out
+		w1_devices = os.listdir("/sys/bus/w1/devices/")
 		no_of_devices = len(w1_devices) -1
 		printlog("You have %d 1-wire devices attached" % (no_of_devices))
 		if no_of_devices < 1:
