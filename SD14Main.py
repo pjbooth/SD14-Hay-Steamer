@@ -133,7 +133,6 @@ def mains_init():
 
 
 def mains_on():
-	global mains
 	# Set K0-K3
 	GPIO.output (17, True)
 	GPIO.output (22, True)
@@ -150,7 +149,6 @@ def mains_on():
 
 
 def mains_off():
-	global mains
 	# Set K0-K3
 	GPIO.output (17, True)
 	GPIO.output (22, True)
