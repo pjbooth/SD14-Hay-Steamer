@@ -111,6 +111,7 @@ def reboot():
 
 
 def mains_init():
+	printlog("Initialising Mains")
 	# Select the GPIO pins used for the encoder K0-K3 data inputs
 	GPIO.setup(17, GPIO.OUT)
 	GPIO.setup(22, GPIO.OUT)
@@ -133,6 +134,7 @@ def mains_init():
 
 
 def mains_on():
+	printlog("Mains ON")
 	# Set K0-K3
 	GPIO.output (17, True)
 	GPIO.output (22, True)
@@ -149,6 +151,7 @@ def mains_on():
 
 
 def mains_off():
+	printlog("Mains OFF")
 	# Set K0-K3
 	GPIO.output (17, True)
 	GPIO.output (22, True)
@@ -209,15 +212,18 @@ try:
 				this_device = "/sys/bus/w1/devices/" + device + "/w1_slave"
 				w1_device_list.append(this_device)
 		state = 1
+		printlog("State 1, about to start main loop")
 
 		try:
 			while state < 10:							# Use state 10 to request a controlled termination of program
 				if state == 1:
+					printlog("State 1, inside 1st loop")
 					GPIO.output(redLED, 1)
 					GPIO.output(amberLED, 0)
 					GPIO.output(greenLED, 0)
 					i = 300
 					while state == 1:								# Wait for Steam button to be pressed
+						printlog("State 1, inside 2nd loop")
 						i += 1
 						if i > 300:									# every minute....
 							mains_off()
