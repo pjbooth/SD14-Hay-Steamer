@@ -201,9 +201,10 @@ try:
 			printlog("Loading 1-wire device drivers, please wait five seconds...")
 			try:
 				output_mp1 = subprocess.Popen('sudo modprobe -r w1-gpio', shell=True, stdout=subprocess.PIPE)		# remove
+				printlog("Just making sure we (re)start w1-gpio cleanly")
 				time.sleep(5)
 			except:
-				printlog("Just checking that w1-gpio module is not loaded in case we didn't shut down cleanly last time")
+				pass			# in case we try to unload the module but it's not loaded, that's OK; it's clean so no need to handle exception
 			output_mp1 = subprocess.Popen('sudo modprobe w1-gpio', shell=True, stdout=subprocess.PIPE)
 			output_mp2 = subprocess.Popen('sudo modprobe w1-therm', shell=True, stdout=subprocess.PIPE)
 			time.sleep(5)        									# wait a few seconds to stop the program storming ahead and crashing out
