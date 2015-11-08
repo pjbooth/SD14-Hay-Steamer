@@ -205,7 +205,7 @@ try:
 			except:
 				printlog("Just checking that w1-gpio module is not loaded in case we didn't shut down cleanly last time")
 			output_mp1 = subprocess.Popen('sudo modprobe w1-gpio', shell=True, stdout=subprocess.PIPE)
-#			output_mp2 = subprocess.Popen('sudo modprobe w1-therm', shell=True, stdout=subprocess.PIPE)
+			output_mp2 = subprocess.Popen('sudo modprobe w1-therm', shell=True, stdout=subprocess.PIPE)
 			time.sleep(5)        									# wait a few seconds to stop the program storming ahead and crashing out
 			w1_devices = os.listdir("/sys/bus/w1/devices/")
 		no_of_devices = len(w1_devices) -1
