@@ -44,7 +44,6 @@ buzzer = 21
 
 
 def read_temp(device):
-#	printlog("Reading temperature")
 	DS18b20 = open(device)
 	text = DS18b20.read()
 	DS18b20.close()
@@ -52,7 +51,6 @@ def read_temp(device):
 	temperaturedata = secondline.split(" ")[9]	# Split the line into words, referring to the spaces, and select the 10th word (counting from 0).
 	temperature = float(temperaturedata[2:])	# The first two characters are "t=", so get rid of those and convert the temperature from a string to a number.
 	temperature = temperature / 1000			# Put the decimal point in the right place and display it.
-#	printlog("Temperature is %d" % temperature)
 	return temperature
 
 
@@ -176,7 +174,7 @@ def mains_off():
 # Return CPU temperature as a character string                                      
 def getCPUtemperature():
 	res = os.popen('vcgencmd measure_temp').readline()
-	cputemp = res.replace("temp=","").replace("'C\n","")
+	cputemp = float(res.replace("temp=","").replace("'C\n",""))
 	return cputemp
 
 
