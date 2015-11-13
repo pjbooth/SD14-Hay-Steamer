@@ -66,9 +66,9 @@ def printlog(message):
 
 def printdata(data):
 	global state
-	cputemp = getCPUtemperature()				# may as well report on the processor temperature while we're at it
-	cpupct = psutil.cpu_percent()
-	cpumem = psutil.virtual_memory().percent
+	cputemp = getCPUtemperature()				# may as well report on various processor stats while we're at it
+	cpupct = str(psutil.cpu_percent())
+	cpumem = str(psutil.virtual_memory().percent)
 	myData = {'date' : datetime.datetime.now().strftime(dateString), 'temp' : data, 'state' : state, 'cputemp' : cputemp, 'cpupct' : cpupct, 'cpumem' : cpumem}
 	vizData = {'d' : myData}
 	client.publishEvent(event="data", msgFormat="json", data=myData)
@@ -173,10 +173,10 @@ def mains_off():
 	GPIO.output (25, False)
 
 
-# Return CPU temperature as an integer                                      
+# Return CPU temperature as a character string                                      
 def getCPUtemperature():
 	res = os.popen('vcgencmd measure_temp').readline()
-	return(int(res.replace("temp=","").replace("'C\n","")))
+	return(res.replace("temp=","").replace("'C\n",""))
 
 
 ###########  end of defs  ##################
