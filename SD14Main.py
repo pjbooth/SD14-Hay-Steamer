@@ -201,10 +201,15 @@ try:
 		mqtt_connected = 1
 		client.commandCallback = myCommandCallback
 
-#		output_mp1 = subprocess.Popen('sudo modprobe w1-gpio', shell=True, stdout=subprocess.PIPE)
-#		output_mp2 = subprocess.Popen('sudo modprobe w1-therm', shell=True, stdout=subprocess.PIPE)
-#		time.sleep(5)        # wait a few seconds to stop the program storming ahead and crashing out
-		w1_devices = os.listdir("/sys/bus/w1/devices/")
+
+		try:
+			w1_devices = os.listdir("/sys/bus/w1/devices/")
+		except:
+			printlog("Loading 1-wire device drivers, please wait five seconds...")
+			output_mp1 = subprocess.Popen('sudo modprobe w1-gpio', shell=True, stdout=subprocess.PIPE)
+			output_mp2 = subprocess.Popen('sudo modprobe w1-therm', shell=True, stdout=subprocess.PIPE)
+			time.sleep(5)        									# wait a few seconds to stop the program storming ahead and crashing out
+			w1_devices = os.listdir("/sys/bus/w1/devices/")
 		no_of_devices = len(w1_devices) -1
 		printlog("You have %d 1-wire devices attached" % (no_of_devices))
 		if no_of_devices != 1:
@@ -216,6 +221,7 @@ try:
 				this_device = "/sys/bus/w1/devices/" + device + "/w1_slave"
 				w1_device_list.append(this_device)
 		state = 1
+
 
 		try:
 			while state < 10:							# Use state 10 to request a controlled termination of program
