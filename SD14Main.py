@@ -173,11 +173,11 @@ def mains_off():
 	GPIO.output (25, False)
 
 
-# Return CPU temperature as an integer                                      
+# Return CPU temperature as a character string                                      
 def getCPUtemperature():
 	res = os.popen('vcgencmd measure_temp').readline()
-	cputemp = int(res.replace("temp=","").replace("'C\n",""))
-	return(cputemp)
+	cputemp = res.replace("temp=","").replace("'C\n","")
+	return cputemp
 
 
 ###########  end of defs  ##################
