@@ -16,6 +16,7 @@ import RPi.GPIO as GPIO
 import paho.mqtt.client as paho        #as instructed by http://mosquitto.org/documentation/python/
 #from ConfigParser import SafeConfigParser
 import ibmiotf.device
+import psutil
 
 
 progname = sys.argv[0]						# name of this program
@@ -66,7 +67,9 @@ def printlog(message):
 def printdata(data):
 	global state
 	cputemp = getCPUtemperature()				# may as well report on the processor temperature while we're at it
-	myData = {'date' : datetime.datetime.now().strftime(dateString), 'temp' : data, 'state' : state, 'cputemp' : cputemp}
+	cpupct = psutil.cpu_percent()
+	cpumem = psutil.virtual_memory().percent
+	myData = {'date' : datetime.datetime.now().strftime(dateString), 'temp' : data, 'state' : state, 'cputemp' : cputemp, 'cpupct' : cpupct, 'cpumem' : cpumem}
 	vizData = {'d' : myData}
 	client.publishEvent(event="data", msgFormat="json", data=myData)
 
@@ -170,7 +173,7 @@ def mains_off():
 	GPIO.output (25, False)
 
 
-# Return CPU temperature as a character string                                      
+# Return CPU temperature as an integer                                      
 def getCPUtemperature():
 	res = os.popen('vcgencmd measure_temp').readline()
 	return(int(res.replace("temp=","").replace("'C\n","")))
