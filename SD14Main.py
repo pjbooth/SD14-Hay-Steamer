@@ -19,7 +19,7 @@ import ibmiotf.device
 
 
 progname = sys.argv[0]						# name of this program
-version = "2.2"								# allows me to track which release is running
+version = "2.4"								# allows me to track which release is running
 interval = 5								# number of seconds between readings
 iotfFile = "/home/pi/SD14IOTF.cfg"
 dateString = '%Y/%m/%d %H:%M:%S'
@@ -65,7 +65,8 @@ def printlog(message):
 
 def printdata(data):
 	global state
-	myData = {'date' : datetime.datetime.now().strftime(dateString), 'temp' : data, 'state' : state}
+	cputemp = getCPUtemperature()				# may as well report on the processor temperature while we're at it
+	myData = {'date' : datetime.datetime.now().strftime(dateString), 'temp' : data, 'state' : state, 'cputemp' : cputemp}
 	vizData = {'d' : myData}
 	client.publishEvent(event="data", msgFormat="json", data=myData)
 
