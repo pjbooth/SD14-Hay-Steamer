@@ -307,5 +307,6 @@ except:
 finally:
 	printlog("Closing program as requested")
 	mains_off()
-	GPIO.cleanup()     # this ensures a clean exit	
+	time.sleep(3)		# allow time to switch off
+	GPIO.cleanup()		# this ensures a clean exit	
 
