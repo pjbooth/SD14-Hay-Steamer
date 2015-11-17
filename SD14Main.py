@@ -47,6 +47,7 @@ temperature = 0
 
 
 def read_temp(device):
+	global temperature
 	try:
 		DS18b20 = open(device)
 		try:
@@ -307,7 +308,7 @@ try:
 			printlog("Exiting after Ctrl-C")
 
 		except BaseException as e:
-			printlog("Unexpected fault occurred in main loop" + str(e))
+			printlog("Unexpected fault occurred in main loop: " + str(e))
 
 	except:
 		printlog("Cannot start MQTT client and connect to MQ broker")
