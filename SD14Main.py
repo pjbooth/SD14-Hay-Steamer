@@ -318,7 +318,7 @@ except:
 finally:
 	if error_count < error_limit:
 		printlog("Closing program as requested")
-	elif:
+	else:
 		printlog("Closing program due to excessive errors")
 	mains_off()
 	time.sleep(3)		# allow time to switch off
