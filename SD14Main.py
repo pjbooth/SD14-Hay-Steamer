@@ -306,8 +306,8 @@ try:
 		except KeyboardInterrupt:
 			printlog("Exiting after Ctrl-C")
 
-		except:
-			printlog("Unexpected fault occurred in main loop")
+		except BaseException as e:
+			printlog("Unexpected fault occurred in main loop" + str(e))
 
 	except:
 		printlog("Cannot start MQTT client and connect to MQ broker")
