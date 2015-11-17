@@ -38,19 +38,30 @@ redLED = 26
 buttonSteam = 20
 buttonReset = 16
 buzzer = 21
+error_count = 0
+error_limit = 20
+temperature = 0
 
 
 ####  here are the defs   ###################
 
 
 def read_temp(device):
-	DS18b20 = open(device)
-	text = DS18b20.read()
+	try:
+		DS18b20 = open(device)
+		try:
+			text = DS18b20.read()
+		except:
+			printlog("Error trying to read thermometer")
+			error_count += 1
+			secondline = text.split("\n")[1]		    # Split the text with new lines (\n) and select the second line.
+			temperaturedata = secondline.split(" ")[9]	# Split the line into words, referring to the spaces, and select the 10th word (counting from 0).
+			temperature = float(temperaturedata[2:])	# The first two characters are "t=", so get rid of those and convert the temperature from a string to a number.
+			temperature = temperature / 1000			# Put the decimal point in the right place and display it.
+	except:
+		printlog("Error trying to open thermometer")
+		error_count += 1
 	DS18b20.close()
-	secondline = text.split("\n")[1]		    # Split the text with new lines (\n) and select the second line.
-	temperaturedata = secondline.split(" ")[9]	# Split the line into words, referring to the spaces, and select the 10th word (counting from 0).
-	temperature = float(temperaturedata[2:])	# The first two characters are "t=", so get rid of those and convert the temperature from a string to a number.
-	temperature = temperature / 1000			# Put the decimal point in the right place and display it.
 	return temperature
 
 
@@ -227,13 +238,13 @@ try:
 
 
 		try:
-			while state < 10:							# Use state 10 to request a controlled termination of program
+			while state < 10  and error_count < error_limit:							# Use state 10 to request a controlled termination of program
 				if state == 1:
 					GPIO.output(redLED, 1)
 					GPIO.output(amberLED, 0)
 					GPIO.output(greenLED, 0)
 					i = 300
-					while state == 1:								# Wait for Steam button to be pressed
+					while state == 1 and error_count < error_limit:								# Wait for Steam button to be pressed
 						i += 1
 						if i > 300:									# every minute....
 							mains_off()
@@ -247,7 +258,7 @@ try:
 							mains_on()
 						time.sleep(0.2)
 
-				elif state == 2:
+				elif state == 2 and error_count < error_limit:
 					GPIO.output(redLED, 0)
 					GPIO.output(amberLED, 1)
 					GPIO.output(greenLED, 0)			
@@ -268,7 +279,7 @@ try:
 								break
 							time.sleep(0.2)
 
-				elif state == 3:
+				elif state == 3 and error_count < error_limit:
 					GPIO.output(redLED, 0)
 					GPIO.output(amberLED, 0)
 					GPIO.output(greenLED, 1)
@@ -305,7 +316,10 @@ except:
 	printlog("Unable to process configuration file " + iotfFile)
 
 finally:
-	printlog("Closing program as requested")
+	if error_count < error_limit:
+		printlog("Closing program as requested")
+	elif:
+		printlog("Closing program due to excessive errors")
 	mains_off()
 	time.sleep(3)		# allow time to switch off
 	GPIO.cleanup()		# this ensures a clean exit	
