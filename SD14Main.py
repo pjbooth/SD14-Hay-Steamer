@@ -53,13 +53,13 @@ def read_temp(device):
 		DS18b20 = open(device)
 		try:
 			text = DS18b20.read()
-		except:
-			printlog("Error trying to read thermometer")
-			error_count += 1
 			secondline = text.split("\n")[1]		    # Split the text with new lines (\n) and select the second line.
 			temperaturedata = secondline.split(" ")[9]	# Split the line into words, referring to the spaces, and select the 10th word (counting from 0).
 			temperature = float(temperaturedata[2:])	# The first two characters are "t=", so get rid of those and convert the temperature from a string to a number.
 			temperature = temperature / 1000			# Put the decimal point in the right place and display it.
+		except:
+			printlog("Error trying to read thermometer")
+			error_count += 1
 	except:
 		printlog("Error trying to open thermometer")
 		error_count += 1
