@@ -40,15 +40,15 @@ buttonReset = 16
 buzzer = 21
 error_count = 0
 error_limit = 20
-temperature = 0
-DS18b20 = 0
 
 
 ####  here are the defs   ###################
 
 
 def read_temp(device):
-	global temperature, error_count, DS18b20
+	global error_count
+	temperature = 0
+	DS18b20 = 0
 	try:
 		DS18b20 = open(device)
 		try:
