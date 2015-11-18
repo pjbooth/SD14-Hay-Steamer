@@ -325,5 +325,4 @@ finally:
 	mains_off()
 	time.sleep(3)		# allow time to switch off
 	GPIO.cleanup()		# this ensures a clean exit	
-	DS18b20.close()		# finally close the thermometer device
 
