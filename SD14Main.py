@@ -41,14 +41,14 @@ buzzer = 21
 error_count = 0
 error_limit = 20
 temperature = 0
+DS18b20 = 0
 
 
 ####  here are the defs   ###################
 
 
 def read_temp(device):
-	global temperature
-	global error_count
+	global temperature, error_count, DS18b20
 	try:
 		DS18b20 = open(device)
 		try:
@@ -325,4 +325,5 @@ finally:
 	mains_off()
 	time.sleep(3)		# allow time to switch off
 	GPIO.cleanup()		# this ensures a clean exit	
+	DS18b20.close()		# finally close the thermometer device
 
