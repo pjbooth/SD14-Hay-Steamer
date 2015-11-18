@@ -48,6 +48,7 @@ temperature = 0
 
 def read_temp(device):
 	global temperature
+	global error_count
 	try:
 		DS18b20 = open(device)
 		try:
