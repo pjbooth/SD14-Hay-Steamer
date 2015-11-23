@@ -58,12 +58,12 @@ def read_temp(device):
 			temperature = float(temperaturedata[2:])	# The first two characters are "t=", so get rid of those and convert the temperature from a string to a number.
 			temperature = temperature / 1000			# Put the decimal point in the right place and display it.
 		except:
-			printlog("Error trying to read thermometer")
+			printlog("Error trying to read thermometer: " + str(sys.exc_info()[0]))
 			error_count += 1
+			DS18b20.close()
 	except:
-		printlog("Error trying to open thermometer")
+		printlog("Error trying to open thermometer: " + str(sys.exc_info()[0]))
 		error_count += 1
-	DS18b20.close()
 	return temperature
 
 
