@@ -75,7 +75,7 @@ def reboot():
 
 def postField(s):			# a simple test to see if I can post to ThingSpeak
 	time.sleep(15)
-	r = requests.post("https://api.thingspeak.com/update.json?api_key=Y5GJMXA8DG5GRESM", data={'field7': s})
+	r = requests.post("https://api.thingspeak.com/update.json?api_key=Y5GJMXA8DG5GRESM", data={'field8': 'message line is ' + str(s)})
 	print(r.text[:300] + '...')
 
 
