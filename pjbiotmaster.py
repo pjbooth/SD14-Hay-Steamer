@@ -28,7 +28,7 @@ keep_running = true
 def printlog(message):
 	logline = progname + " " + version + " " + datetime.datetime.now().strftime(dateString) + ": " + message
 	print logline	
-	if mqtt_connected == 1 and diagnostics == 1:
+	if mqtt_connected == 1:
 		myData={'name' : progname, 'version' : version, 'date' : datetime.datetime.now().strftime(dateString), 'message' : message}
 		client.publishEvent(event="logs", msgFormat="json", data=myData)
 
@@ -40,7 +40,9 @@ def printdata():
 	cpupct = float(psutil.cpu_percent())
 	cpumem = float(psutil.virtual_memory().percent)
 	myData = {'date' : datetime.datetime.now().strftime(dateString), 'cputemp' : cputemp, 'cpupct' : cpupct, 'cpumem' : cpumem}
-	client.publishEvent(event="data", msgFormat="json", data=myData)
+	print myData
+	if mqtt_connected == 1:
+		client.publishEvent(event="data", msgFormat="json", data=myData)
 
 
 def myCommandCallback(cmd):						# callback example from IOTF documentation
