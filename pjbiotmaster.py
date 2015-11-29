@@ -73,8 +73,8 @@ def reboot():
 	print output
 
 
-def postState(s):			# a simple test to see if I can post to ThingSpeak
-	r = requests.post("https://api.thingspeak.com/update.json?api_key=Y5GJMXA8DG5GRESM", data={'field3': s})
+def postField(n,s):			# a simple test to see if I can post to ThingSpeak
+	r = requests.post("https://api.thingspeak.com/update.json?api_key=Y5GJMXA8DG5GRESM", data={'field'+str(n): s})
 
 
 ###########  end of defs  ##################
@@ -96,7 +96,7 @@ try:
 					state = 2
 				else:
 					state = 1
-				postState(state)
+				postField(7,state)
 				time.sleep(interval)
 		except KeyboardInterrupt:
 			printlog("Exiting as requested")
