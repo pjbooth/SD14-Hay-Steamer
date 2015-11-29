@@ -11,6 +11,7 @@ import time, datetime
 import paho.mqtt.client as paho        #as instructed by http://mosquitto.org/documentation/python/
 import ibmiotf.device
 import psutil
+import requests						# to support http POST requests to ThingSpeak
 
 
 progname = sys.argv[0]						# name of this program
@@ -34,7 +35,6 @@ def printlog(message):
 
 
 def printdata():
-#	cputemp = getCPUtemperature()
 	res = os.popen('vcgencmd measure_temp').readline()
 	cputemp = float(res.replace("temp=","").replace("'C\n",""))
 	cpupct = float(psutil.cpu_percent())
@@ -53,6 +53,7 @@ def myCommandCallback(cmd):						# callback example from IOTF documentation
 	elif cmd.command == "gsYi21lu-!e8":
 		shutdown()
 	elif cmd.command == "Exit":
+		printlog("Exiting as requested")
 		keep_running = False
 	else:
 		printlog("Unsupported command: %s" % cmd.command)
@@ -72,6 +73,10 @@ def reboot():
 	print output
 
 
+def postState(s):			# a simple test to see if I can post to ThingSpeak
+	r = requests.post("https://api.thingspeak.com/update.json?api_key=Y5GJMXA8DG5GRESM", data={'field3': s})
+
+
 ###########  end of defs  ##################
 
 
@@ -79,6 +84,7 @@ try:
 	deviceOptions = ibmiotf.device.ParseConfigFile(iotfFile)	# keeping the IOTF config file locally on device for security
 	try:     									# Create the MQTT client, connect to the IOTF broker and start threaded loop in background
 		global client
+		state = 1
 		client = ibmiotf.device.Client(deviceOptions)
 		client.connect()
 		mqtt_connected = 1
@@ -86,6 +92,11 @@ try:
 		try:
 			while keep_running:
 				printdata()					# Transmit CPU stats
+				if state == 1:
+					state = 2
+				else:
+					state = 1
+				postState(state)
 				time.sleep(interval)
 		except KeyboardInterrupt:
 			printlog("Exiting as requested")
