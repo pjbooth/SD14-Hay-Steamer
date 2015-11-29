@@ -96,7 +96,7 @@ try:
 					state = 2
 				else:
 					state = 1
-				postField(7,state)
+				postField(state)
 				time.sleep(interval)
 		except KeyboardInterrupt:
 			printlog("Exiting as requested")
