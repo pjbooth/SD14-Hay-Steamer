@@ -19,7 +19,7 @@ interval = 15								# number of seconds between readings
 iotfFile = "/home/pi/SD14IOTF.cfg"
 dateString = '%Y/%m/%d %H:%M:%S'
 mqtt_connected = 0
-keep_running = true
+keep_running = True
 
 
 ####  here are the defs   ###################
@@ -53,7 +53,7 @@ def myCommandCallback(cmd):						# callback example from IOTF documentation
 	elif cmd.command == "gsYi21lu-!e8":
 		shutdown()
 	elif cmd.command == "Exit":
-		keep_running = false
+		keep_running = False
 	else:
 		printlog("Unsupported command: %s" % cmd.command)
 
