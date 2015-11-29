@@ -16,11 +16,12 @@ import RPi.GPIO as GPIO
 import paho.mqtt.client as paho        #as instructed by http://mosquitto.org/documentation/python/
 #from ConfigParser import SafeConfigParser
 import ibmiotf.device
+import psutil
 
 
 progname = sys.argv[0]						# name of this program
-version = "2.2"								# allows me to track which release is running
-interval = 5								# number of seconds between readings
+version = "2.5"								# allows me to track which release is running
+interval = 15								# number of seconds between readings (note that ThingSpeak max rate is one update per 15 seconds)
 iotfFile = "/home/pi/SD14IOTF.cfg"
 dateString = '%Y/%m/%d %H:%M:%S'
 state = 0									# keep track of which state we are in
@@ -31,24 +32,38 @@ state = 0									# keep track of which state we are in
 mqtt_connected = 0
 diagnostics = 1
 target = 90									# target temperature
-greenLED = 23
-amberLED = 24
-redLED = 25
-buttonSteam = 7
-buttonReset = 8
+greenLED = 13								# These are GPIO numbers
+amberLED = 19
+redLED = 26
+buttonSteam = 20
+buttonReset = 16
+buzzer = 21
+error_count = 0
+error_limit = 20
 
 
 ####  here are the defs   ###################
 
 
 def read_temp(device):
-	DS18b20 = open(device)
-	text = DS18b20.read()
-	DS18b20.close()
-	secondline = text.split("\n")[1]		    # Split the text with new lines (\n) and select the second line.
-	temperaturedata = secondline.split(" ")[9]	# Split the line into words, referring to the spaces, and select the 10th word (counting from 0).
-	temperature = float(temperaturedata[2:])	# The first two characters are "t=", so get rid of those and convert the temperature from a string to a number.
-	temperature = temperature / 1000			# Put the decimal point in the right place and display it.
+	global error_count
+	temperature = 0
+	DS18b20 = 0
+	try:
+		DS18b20 = open(device)
+		try:
+			text = DS18b20.read()
+			secondline = text.split("\n")[1]		    # Split the text with new lines (\n) and select the second line.
+			temperaturedata = secondline.split(" ")[9]	# Split the line into words, referring to the spaces, and select the 10th word (counting from 0).
+			temperature = float(temperaturedata[2:])	# The first two characters are "t=", so get rid of those and convert the temperature from a string to a number.
+			temperature = temperature / 1000			# Put the decimal point in the right place and display it.
+		except:
+			printlog("Error trying to read thermometer: " + str(sys.exc_info()[0]))
+			error_count += 1
+			DS18b20.close()
+	except:
+		printlog("Error trying to open thermometer: " + str(sys.exc_info()[0]))
+		error_count += 1
 	return temperature
 
 
@@ -62,7 +77,10 @@ def printlog(message):
 
 def printdata(data):
 	global state
-	myData = {'date' : datetime.datetime.now().strftime(dateString), 'temp' : data, 'state' : state}
+	cputemp = getCPUtemperature()				# may as well report on various processor stats while we're at it
+	cpupct = float(psutil.cpu_percent())
+	cpumem = float(psutil.virtual_memory().percent)
+	myData = {'date' : datetime.datetime.now().strftime(dateString), 'temp' : data, 'state' : state, 'cputemp' : cputemp, 'cpupct' : cpupct, 'cpumem' : cpumem}
 	vizData = {'d' : myData}
 	client.publishEvent(event="data", msgFormat="json", data=myData)
 
@@ -91,6 +109,7 @@ def myCommandCallback(cmd):						# callback example from IOTF documentation
 
 
 def shutdown():
+	mains_off()
 	GPIO.cleanup()
 	command = "/usr/bin/sudo /sbin/shutdown -h now"
 	process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
@@ -100,11 +119,76 @@ def shutdown():
 
 def reboot():
 	printlog("Restarting as requested")
+	mains_off()
 	GPIO.cleanup()
 	command = "/usr/bin/sudo /sbin/shutdown -r now"
 	process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
 	output = process.communicate()[0]
 	print output
+
+
+def mains_init():
+#	printlog("Initialising Mains")
+	# Select the GPIO pins used for the encoder K0-K3 data inputs
+	GPIO.setup(17, GPIO.OUT)
+	GPIO.setup(22, GPIO.OUT)
+	GPIO.setup(23, GPIO.OUT)
+	GPIO.setup(27, GPIO.OUT)
+	# Select the signal to select ASK/FSK
+	GPIO.setup(24, GPIO.OUT)
+	# Select the signal used to enable/disable the modulator
+	GPIO.setup(25, GPIO.OUT)
+	# Disable the modulator by setting CE pin lo
+	GPIO.output (25, False)
+	# Set the modulator to ASK for On Off Keying 
+	# by setting MODSEL pin lo
+	GPIO.output (24, False)
+	# Initialise K0-K3 inputs of the encoder to 0000
+	GPIO.output (17, False)
+	GPIO.output (22, False)
+	GPIO.output (23, False)
+	GPIO.output (27, False)
+
+
+def mains_on():
+#	printlog("Mains ON")
+	# Set K0-K3
+	GPIO.output (17, True)
+	GPIO.output (22, True)
+	GPIO.output (23, True)
+	GPIO.output (27, True)
+	# let it settle, encoder requires this
+	time.sleep(0.1)	
+	# Enable the modulator
+	GPIO.output (25, True)
+	# keep enabled for a period
+	time.sleep(0.25)
+	# Disable the modulator
+	GPIO.output (25, False)
+
+
+def mains_off():
+#	printlog("Mains OFF")
+	# Set K0-K3
+	GPIO.output (17, True)
+	GPIO.output (22, True)
+	GPIO.output (23, True)
+	GPIO.output (27, False)
+	# let it settle, encoder requires this
+	time.sleep(0.1)
+	# Enable the modulator
+	GPIO.output (25, True)
+	# keep enabled for a period
+	time.sleep(0.25)
+	# Disable the modulator
+	GPIO.output (25, False)
+
+
+# Return CPU temperature as a float                                      
+def getCPUtemperature():
+	res = os.popen('vcgencmd measure_temp').readline()
+	cputemp = float(res.replace("temp=","").replace("'C\n",""))
+	return cputemp
 
 
 ###########  end of defs  ##################
@@ -116,10 +200,12 @@ GPIO.setup(buttonReset, GPIO.IN, pull_up_down=GPIO.PUD_UP)		# Push button 2
 GPIO.setup(greenLED, GPIO.OUT)								# LED 1
 GPIO.setup(amberLED, GPIO.OUT)								# LED 2
 GPIO.setup(redLED, GPIO.OUT)								# LED 3
+GPIO.setup(buzzer, GPIO.OUT)								# Buzzer
 GPIO.output(greenLED, 1)									# Turn on LED to confirm it works
 GPIO.output(amberLED, 1)									# Turn on LED to confirm it works
 GPIO.output(redLED, 1)									# Turn on LED to confirm it works
-
+mains_init()				# initialise the Energenie power controller
+mains_off()
 
 try:
 	deviceOptions = ibmiotf.device.ParseConfigFile(iotfFile)	# keeping the IOTF config file locally on device for security
@@ -131,6 +217,7 @@ try:
 		mqtt_connected = 1
 		client.commandCallback = myCommandCallback
 
+
 		try:
 			w1_devices = os.listdir("/sys/bus/w1/devices/")
 		except:
@@ -141,7 +228,7 @@ try:
 			w1_devices = os.listdir("/sys/bus/w1/devices/")
 		no_of_devices = len(w1_devices) -1
 		printlog("You have %d 1-wire devices attached" % (no_of_devices))
-		if no_of_devices < 1:
+		if no_of_devices != 1:
 			printlog("Please check your wiring and try again.")
 			sys.exit()
 		w1_device_list = []
@@ -151,16 +238,18 @@ try:
 				w1_device_list.append(this_device)
 		state = 1
 
+
 		try:
-			while state < 10:							# Use state 10 to request a controlled termination of program
+			while state < 10  and error_count < error_limit:							# Use state 10 to request a controlled termination of program
 				if state == 1:
 					GPIO.output(redLED, 1)
 					GPIO.output(amberLED, 0)
 					GPIO.output(greenLED, 0)
 					i = 300
-					while state == 1:								# Wait for Steam button to be pressed
+					while state == 1 and error_count < error_limit:								# Wait for Steam button to be pressed
 						i += 1
 						if i > 300:									# every minute....
+							mains_off()
 							for device in w1_device_list:
 								t = read_temp(device)
 							printdata(t)							# Keep the user informed of our state
@@ -168,14 +257,16 @@ try:
 						input_state = GPIO.input(buttonSteam)
 						if input_state == False:
 							state = 2
+							mains_on()
 						time.sleep(0.2)
 
-				elif state == 2:
+				elif state == 2 and error_count < error_limit:
 					GPIO.output(redLED, 0)
 					GPIO.output(amberLED, 1)
 					GPIO.output(greenLED, 0)			
 					t = -100							# start with an absurdly low temperature until first reading is captured so loop works
 					while state == 2:
+						mains_on()
 						for device in w1_device_list:
 							t = read_temp(device)
 							printdata(t)
@@ -190,28 +281,35 @@ try:
 								break
 							time.sleep(0.2)
 
-				elif state == 3:
+				elif state == 3 and error_count < error_limit:
 					GPIO.output(redLED, 0)
 					GPIO.output(amberLED, 0)
 					GPIO.output(greenLED, 1)
 					i = 300
 					while state == 3:
+						mains_off()
 						i += 1
-						if i > 300:						# every minute....
+						if i > 280:						# every minute....  the buzzer takes 4 seconds, the loop 56 seconds at 5 times per second round the loop
 							for device in w1_device_list:
 								t = read_temp(device)
 							printdata(t)				# Keep the user informed of our state
+							for j in range(4):
+								GPIO.output(buzzer,1)			# sound the buzzer
+								time.sleep(0.5)
+								GPIO.output(buzzer,0)			# turn off the buzzer
+								time.sleep(0.5)
 							i = 0
 						input_state = GPIO.input(buttonReset)			# Wait until the Reset button is pressed
 						if input_state == False:
 							state = 1
 						time.sleep(0.2)
 
+
 		except KeyboardInterrupt:
 			printlog("Exiting after Ctrl-C")
 
-		except:
-			printlog("Unexpected fault occurred in main loop")
+		except BaseException as e:
+			printlog("Unexpected fault occurred in main loop: " + str(e))
 
 	except:
 		printlog("Cannot start MQTT client and connect to MQ broker")
@@ -220,6 +318,11 @@ except:
 	printlog("Unable to process configuration file " + iotfFile)
 
 finally:
-	printlog("Closing program as requested")
-	GPIO.cleanup()     # this ensures a clean exit	
+	if error_count < error_limit:
+		printlog("Closing program as requested")
+	else:
+		printlog("Closing program due to excessive errors")
+	mains_off()
+	time.sleep(3)		# allow time to switch off
+	GPIO.cleanup()		# this ensures a clean exit	
 
