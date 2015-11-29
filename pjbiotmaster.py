@@ -86,7 +86,7 @@ try:
 		try:
 			while keep_running:
 				printdata()					# Transmit CPU stats
-				time.sleep(delay)
+				time.sleep(interval)
 		except KeyboardInterrupt:
 			printlog("Exiting as requested")
 		except BaseException as e:
