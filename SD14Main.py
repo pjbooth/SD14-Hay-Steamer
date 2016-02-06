@@ -31,7 +31,10 @@ state = 0									# keep track of which state we are in
 											# state 3 = G   = Target temperature reached
 mqtt_connected = 0
 diagnostics = 1
-target = 90									# target temperature
+trigger = 80								# temperature at which the countdown safety timer begins
+safety = 600								# number of seconds to continue after trigger temperature is reached
+trip = 0									# the countdown timer trip switch ... zero means it's not yet set
+target = 86									# target temperature
 greenLED = 13								# These are GPIO numbers
 amberLED = 19
 redLED = 26
@@ -270,6 +273,11 @@ try:
 						for device in w1_device_list:
 							t = read_temp(device)
 							printdata(t)
+						if t > trigger:					# we must be into the safety countdown period in case the clips are off
+							if trip == 0:				# we have just crossed over the trigger temperature
+								trip = safety + time.time()		# trip becomes the target "safety cutout" time
+							elif trip < time.time()		# the safety cutout time has expired so shut everything down
+								state = 4				# a new state indicating a fault
 						if t > target:
 							state = 3
 						i = interval * 5				# the button read loop happens 5 times per second
@@ -299,6 +307,27 @@ try:
 								GPIO.output(buzzer,0)			# turn off the buzzer
 								time.sleep(0.5)
 							i = 0
+						input_state = GPIO.input(buttonReset)			# Wait until the Reset button is pressed
+						if input_state == False:
+							state = 1
+						time.sleep(0.2)
+						
+				elif state == 4 and error_count < error_limit:				# this state is entered if a steamer fault is detected
+					while state == 4:
+						GPIO.output(redLED, 1)
+						GPIO.output(amberLED, 0)
+						GPIO.output(greenLED, 0)
+						mains_off()
+						for device in w1_device_list:
+							t = read_temp(device)
+						printdata(t)				# Keep the user informed of our state
+						GPIO.output(redLED, 1)
+						GPIO.output(buzzer,1)			# sound the buzzer
+						time.sleep(0.5)
+						GPIO.output(redLED, 0)
+						GPIO.output(buzzer,0)			# turn off the buzzer
+						time.sleep(0.5)
+						i = 0
 						input_state = GPIO.input(buttonReset)			# Wait until the Reset button is pressed
 						if input_state == False:
 							state = 1
