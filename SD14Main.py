@@ -31,7 +31,7 @@ state = 0									# keep track of which state we are in
 											# state 3 = G   = Target temperature reached
 mqtt_connected = 0
 diagnostics = 1
-trigger = 15								# temperature at which the countdown safety timer begins
+trigger = 30								# temperature at which the countdown safety timer begins
 safety = 30								# number of seconds to continue after trigger temperature is reached
 trip = 0									# the countdown timer trip switch ... zero means it's not yet set
 target = 86									# target temperature
