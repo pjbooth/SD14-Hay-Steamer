@@ -276,7 +276,7 @@ try:
 						if t > trigger:					# we must be into the safety countdown period in case the clips are off
 							if trip == 0:				# we have just crossed over the trigger temperature
 								trip = safety + time.time()		# trip becomes the target "safety cutout" time
-							elif trip < time.time()		# the safety cutout time has expired so shut everything down
+							elif trip < time.time():		# the safety cutout time has expired so shut everything down
 								state = 4				# a new state indicating a fault
 						if t > target:
 							state = 3
