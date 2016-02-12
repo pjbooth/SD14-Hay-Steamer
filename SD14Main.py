@@ -248,6 +248,7 @@ try:
 					GPIO.output(redLED, 1)
 					GPIO.output(amberLED, 0)
 					GPIO.output(greenLED, 0)
+					trip = 0											# reset the steamer timeout trip
 					i = 300
 					while state == 1 and error_count < error_limit:								# Wait for Steam button to be pressed
 						i += 1
