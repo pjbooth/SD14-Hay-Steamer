@@ -133,6 +133,7 @@ def reboot():
 def mains_init():
 #	printlog("Initialising Mains")
 	# Select the GPIO pins used for the encoder K0-K3 data inputs
+	GPIO.setmode(GPIO.BCM) 
 	GPIO.setup(17, GPIO.OUT)
 	GPIO.setup(22, GPIO.OUT)
 	GPIO.setup(23, GPIO.OUT)
@@ -156,6 +157,7 @@ def mains_init():
 def mains_on():
 #	printlog("Mains ON")
 	# Set K0-K3
+	GPIO.setmode(GPIO.BCM) 
 	GPIO.output (17, True)
 	GPIO.output (22, True)
 	GPIO.output (23, True)
@@ -173,6 +175,7 @@ def mains_on():
 def mains_off():
 #	printlog("Mains OFF")
 	# Set K0-K3
+	GPIO.setmode(GPIO.BCM) 
 	GPIO.output (17, True)
 	GPIO.output (22, True)
 	GPIO.output (23, True)
@@ -353,6 +356,6 @@ finally:
 	else:
 		printlog("Closing program due to excessive errors")
 	mains_off()
-	time.sleep(3)		# allow time to switch off
+	time.sleep(10)		# allow time to switch off
 	GPIO.cleanup()		# this ensures a clean exit	
 
