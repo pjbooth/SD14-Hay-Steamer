@@ -20,7 +20,7 @@ import psutil
 
 
 progname = sys.argv[0]						# name of this program
-version = "2.5"								# allows me to track which release is running
+version = "3.3"								# allows me to track which release is running
 interval = 15								# number of seconds between readings (note that ThingSpeak max rate is one update per 15 seconds)
 iotfFile = "/home/pi/SD14IOTF.cfg"
 dateString = '%Y/%m/%d %H:%M:%S'
@@ -31,7 +31,10 @@ state = 0									# keep track of which state we are in
 											# state 3 = G   = Target temperature reached
 mqtt_connected = 0
 diagnostics = 1
-target = 90									# target temperature
+trigger = 80								# temperature at which the countdown safety timer begins
+safety = 600								# number of seconds to continue after trigger temperature is reached
+trip = 0								# the countdown timer trip switch ... zero means it's not yet set
+target = 86								# target temperature
 greenLED = 13								# These are GPIO numbers
 amberLED = 19
 redLED = 26
@@ -130,6 +133,7 @@ def reboot():
 def mains_init():
 #	printlog("Initialising Mains")
 	# Select the GPIO pins used for the encoder K0-K3 data inputs
+	GPIO.setmode(GPIO.BCM) 
 	GPIO.setup(17, GPIO.OUT)
 	GPIO.setup(22, GPIO.OUT)
 	GPIO.setup(23, GPIO.OUT)
@@ -153,6 +157,7 @@ def mains_init():
 def mains_on():
 #	printlog("Mains ON")
 	# Set K0-K3
+	GPIO.setmode(GPIO.BCM) 
 	GPIO.output (17, True)
 	GPIO.output (22, True)
 	GPIO.output (23, True)
@@ -170,6 +175,7 @@ def mains_on():
 def mains_off():
 #	printlog("Mains OFF")
 	# Set K0-K3
+	GPIO.setmode(GPIO.BCM) 
 	GPIO.output (17, True)
 	GPIO.output (22, True)
 	GPIO.output (23, True)
@@ -245,6 +251,7 @@ try:
 					GPIO.output(redLED, 1)
 					GPIO.output(amberLED, 0)
 					GPIO.output(greenLED, 0)
+					trip = 0											# reset the steamer timeout trip
 					i = 300
 					while state == 1 and error_count < error_limit:								# Wait for Steam button to be pressed
 						i += 1
@@ -270,6 +277,11 @@ try:
 						for device in w1_device_list:
 							t = read_temp(device)
 							printdata(t)
+						if t > trigger:					# we must be into the safety countdown period in case the clips are off
+							if trip == 0:				# we have just crossed over the trigger temperature
+								trip = safety + time.time()		# trip becomes the target "safety cutout" time
+							elif trip < time.time():		# the safety cutout time has expired so shut everything down
+								state = 4				# a new state indicating a fault
 						if t > target:
 							state = 3
 						i = interval * 5				# the button read loop happens 5 times per second
@@ -303,6 +315,27 @@ try:
 						if input_state == False:
 							state = 1
 						time.sleep(0.2)
+						
+				elif state == 4 and error_count < error_limit:				# this state is entered if a steamer fault is detected
+					while state == 4:
+						GPIO.output(redLED, 1)
+						GPIO.output(amberLED, 0)
+						GPIO.output(greenLED, 0)
+						mains_off()
+						for device in w1_device_list:
+							t = read_temp(device)
+						printdata(t)				# Keep the user informed of our state
+						GPIO.output(redLED, 1)
+						GPIO.output(buzzer,1)			# sound the buzzer
+						time.sleep(0.5)
+						GPIO.output(redLED, 0)
+						GPIO.output(buzzer,0)			# turn off the buzzer
+						time.sleep(0.5)
+						i = 0
+						input_state = GPIO.input(buttonReset)			# Wait until the Reset button is pressed
+						if input_state == False:
+							state = 1
+						time.sleep(0.2)
 
 
 		except KeyboardInterrupt:
@@ -323,6 +356,6 @@ finally:
 	else:
 		printlog("Closing program due to excessive errors")
 	mains_off()
-	time.sleep(3)		# allow time to switch off
+	time.sleep(10)		# allow time to switch off
 	GPIO.cleanup()		# this ensures a clean exit	
 
