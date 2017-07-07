@@ -248,6 +248,8 @@ try:
 		try:
 			while state < 10  and error_count < error_limit:		# Use state 10 to request a controlled termination of program
 				if state == 1:
+					for device in w1_device_list:
+						t = read_temp(device)
 					printdata(t)									# Keep the user informed of our state
 					GPIO.output(redLED, 1)
 					GPIO.output(amberLED, 0)
@@ -269,6 +271,8 @@ try:
 						time.sleep(0.2)
 
 				elif state == 2 and error_count < error_limit:
+					for device in w1_device_list:
+						t = read_temp(device)
 					printdata(t)							# Keep the user informed of our state
 					GPIO.output(redLED, 0)
 					GPIO.output(amberLED, 1)
@@ -296,6 +300,8 @@ try:
 							time.sleep(0.2)
 
 				elif state == 3 and error_count < error_limit:
+					for device in w1_device_list:
+						t = read_temp(device)
 					printdata(t)							# Keep the user informed of our state
 					GPIO.output(redLED, 0)
 					GPIO.output(amberLED, 0)
@@ -320,6 +326,8 @@ try:
 						time.sleep(0.2)
 						
 				elif state == 4 and error_count < error_limit:	# this state is entered if a steamer fault is detected
+					for device in w1_device_list:
+						t = read_temp(device)
 					printdata(t)							# Keep the user informed of our state
 					while state == 4:
 						GPIO.output(redLED, 1)
