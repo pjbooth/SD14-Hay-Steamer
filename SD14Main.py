@@ -246,14 +246,15 @@ try:
 
 
 		try:
-			while state < 10  and error_count < error_limit:							# Use state 10 to request a controlled termination of program
+			while state < 10  and error_count < error_limit:		# Use state 10 to request a controlled termination of program
 				if state == 1:
+					printdata(t)									# Keep the user informed of our state
 					GPIO.output(redLED, 1)
 					GPIO.output(amberLED, 0)
 					GPIO.output(greenLED, 0)
-					trip = 0											# reset the steamer timeout trip
+					trip = 0										# reset the steamer timeout trip
 					i = 300
-					while state == 1 and error_count < error_limit:								# Wait for Steam button to be pressed
+					while state == 1 and error_count < error_limit:	# Wait for Steam button to be pressed
 						i += 1
 						if i > 300:									# every minute....
 							mains_off()
@@ -268,32 +269,34 @@ try:
 						time.sleep(0.2)
 
 				elif state == 2 and error_count < error_limit:
+					printdata(t)							# Keep the user informed of our state
 					GPIO.output(redLED, 0)
 					GPIO.output(amberLED, 1)
 					GPIO.output(greenLED, 0)			
-					t = -100							# start with an absurdly low temperature until first reading is captured so loop works
+					t = -100								# start with an absurdly low temperature until first reading is captured so loop works
 					while state == 2:
 						mains_on()
 						for device in w1_device_list:
 							t = read_temp(device)
 							printdata(t)
-						if t > trigger:					# we must be into the safety countdown period in case the clips are off
-							if trip == 0:				# we have just crossed over the trigger temperature
-								trip = safety + time.time()		# trip becomes the target "safety cutout" time
+						if t > trigger:						# we must be into the safety countdown period in case the clips are off
+							if trip == 0:					# we have just crossed over the trigger temperature
+								trip = safety + time.time()	# trip becomes the target "safety cutout" time
 							elif trip < time.time():		# the safety cutout time has expired so shut everything down
-								state = 4				# a new state indicating a fault
+								state = 4					# a new state indicating a fault
 						if t > target:
 							state = 3
-						i = interval * 5				# the button read loop happens 5 times per second
-						while i > 0:					# Wait 'interval' seconds whilst watching the Reset button
+						i = interval * 5					# the button read loop happens 5 times per second
+						while i > 0:						# Wait 'interval' seconds whilst watching the Reset button
 							i -= 1
 							input_state = GPIO.input(buttonReset)		# Spend the interval checking if the Reset button is pressed
 							if input_state == False:
-								state = 1								# go back to State 1
+								state = 1					# go back to State 1
 								break
 							time.sleep(0.2)
 
 				elif state == 3 and error_count < error_limit:
+					printdata(t)							# Keep the user informed of our state
 					GPIO.output(redLED, 0)
 					GPIO.output(amberLED, 0)
 					GPIO.output(greenLED, 1)
@@ -301,22 +304,23 @@ try:
 					while state == 3:
 						mains_off()
 						i += 1
-						if i > 280:						# every minute....  the buzzer takes 4 seconds, the loop 56 seconds at 5 times per second round the loop
+						if i > 280:							# every minute....  the buzzer takes 4 seconds, the loop 56 seconds at 5 times per second round the loop
 							for device in w1_device_list:
 								t = read_temp(device)
-							printdata(t)				# Keep the user informed of our state
+							printdata(t)					# Keep the user informed of our state
 							for j in range(4):
-								GPIO.output(buzzer,1)			# sound the buzzer
+								GPIO.output(buzzer,1)		# sound the buzzer
 								time.sleep(0.5)
-								GPIO.output(buzzer,0)			# turn off the buzzer
+								GPIO.output(buzzer,0)		# turn off the buzzer
 								time.sleep(0.5)
 							i = 0
-						input_state = GPIO.input(buttonReset)			# Wait until the Reset button is pressed
+						input_state = GPIO.input(buttonReset)	# Wait until the Reset button is pressed
 						if input_state == False:
 							state = 1
 						time.sleep(0.2)
 						
-				elif state == 4 and error_count < error_limit:				# this state is entered if a steamer fault is detected
+				elif state == 4 and error_count < error_limit:	# this state is entered if a steamer fault is detected
+					printdata(t)							# Keep the user informed of our state
 					while state == 4:
 						GPIO.output(redLED, 1)
 						GPIO.output(amberLED, 0)
@@ -324,15 +328,15 @@ try:
 						mains_off()
 						for device in w1_device_list:
 							t = read_temp(device)
-						printdata(t)				# Keep the user informed of our state
+						printdata(t)						# Keep the user informed of our state
 						GPIO.output(redLED, 1)
-						GPIO.output(buzzer,1)			# sound the buzzer
+						GPIO.output(buzzer,1)				# sound the buzzer
 						time.sleep(0.5)
 						GPIO.output(redLED, 0)
-						GPIO.output(buzzer,0)			# turn off the buzzer
+						GPIO.output(buzzer,0)				# turn off the buzzer
 						time.sleep(0.5)
 						i = 0
-						input_state = GPIO.input(buttonReset)			# Wait until the Reset button is pressed
+						input_state = GPIO.input(buttonReset)	# Wait until the Reset button is pressed
 						if input_state == False:
 							state = 1
 						time.sleep(0.2)
