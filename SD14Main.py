@@ -77,7 +77,7 @@ def printlog(message):
 	logline = progname + " " + version + " " + datetime.datetime.now().strftime(dateString) + ": " + message
 	print logline	
 	if mqtt_connected == 1 and diagnostics == 1:
-		myData={'name' : progname, 'version' : version, 'date' : datetime.datetime.now().strftime(dateString), 'message' : message}
+		myData={'_id' : datetime.datetime.now().strftime(dateString), 'name' : progname, 'version' : version, 'message' : message}
 		client.publishEvent(event="logs", msgFormat="json", data=myData)
 
 
