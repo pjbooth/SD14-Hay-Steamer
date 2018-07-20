@@ -17,10 +17,13 @@ import paho.mqtt.client as paho        #as instructed by http://mosquitto.org/do
 #from ConfigParser import SafeConfigParser
 import ibmiotf.device
 import psutil
+import socket
+import fcntl
+import struct
 
 
 progname = sys.argv[0]						# name of this program
-version = "3.4"								# allows me to track which release is running
+version = "3.5"								# allows me to track which release is running
 interval = 15								# number of seconds between readings (note that ThingSpeak max rate is one update per 15 seconds)
 iotfFile = "/home/pi/SD14IOTF.cfg"
 dateString = '%Y/%m/%d %H:%M:%S'
@@ -197,6 +200,14 @@ def getCPUtemperature():
 	return cputemp
 
 
+def get_ip_address(ifname):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    return socket.inet_ntoa(fcntl.ioctl(
+        s.fileno(),
+        0x8915,  # SIOCGIFADDR
+        struct.pack('256s', ifname[:15])
+    )[20:24])
+
 ###########  end of defs  ##################
 
 
@@ -222,6 +233,7 @@ try:
 		client.connect()
 		mqtt_connected = 1
 		client.commandCallback = myCommandCallback
+		printlog("Starting up with IP address" + get_ip_address('wlan0'))
 
 
 		try:
