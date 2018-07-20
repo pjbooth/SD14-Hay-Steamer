@@ -86,7 +86,7 @@ def printdata(data):
 	cputemp = getCPUtemperature()				# may as well report on various processor stats while we're at it
 	cpupct = float(psutil.cpu_percent())
 	cpumem = float(psutil.virtual_memory().percent)
-	myData = {'date' : datetime.datetime.now().strftime(dateString), 'temp' : data, 'state' : state, 'cputemp' : cputemp, 'cpupct' : cpupct, 'cpumem' : cpumem}
+	myData = {'_id' : datetime.datetime.now().strftime(dateString), 'temp' : data, 'state' : state, 'cputemp' : cputemp, 'cpupct' : cpupct, 'cpumem' : cpumem}
 	vizData = {'d' : myData}
 	client.publishEvent(event="data", msgFormat="json", data=myData)
 
