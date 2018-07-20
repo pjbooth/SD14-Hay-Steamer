@@ -26,7 +26,7 @@ progname = sys.argv[0]						# name of this program
 version = "3.5"								# allows me to track which release is running
 interval = 15								# number of seconds between readings (note that ThingSpeak max rate is one update per 15 seconds)
 iotfFile = "/home/pi/SD14IOTF.cfg"
-dateString = '%Y/%m/%d %H:%M:%S'
+dateString = '%Y/%m/%d %H:%M:%S.%f'
 state = 0									# keep track of which state we are in
 											# state 0 = RAG = booting up 
 											# state 1 = R   = Up and connected to IOTF but steamer not turned on
