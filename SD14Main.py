@@ -233,7 +233,7 @@ try:
 		client.connect()
 		mqtt_connected = 1
 		client.commandCallback = myCommandCallback
-		printlog("Starting up with IP address" + get_ip_address('wlan0'))
+		printlog("Starting up with IP address " + get_ip_address('wlan0'))
 
 
 		try:
