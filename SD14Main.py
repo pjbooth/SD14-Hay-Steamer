@@ -36,7 +36,7 @@ state = 0									# keep track of which state we are in
 											# state 4 = flashing R  = Error condition detected
 mqtt_connected = 0
 diagnostics = 1
-trigger = 70								# temperature at which the countdown safety timer begins ... adjusted due to the new location of the temperature sensor at the back of the lid, reading ~10 degrees lower than the central gauge
+trigger = 75								# temperature at which the countdown safety timer begins ... adjusted due to the new location of the temperature sensor at the back of the lid, reading ~5 degrees lower than the central gauge.  BEWARE .. if the glue runs out and the probe slips back, the differential gets large and system goes to 100 degrees!
 safety = 600								# number of seconds to continue after trigger temperature is reached
 trip = 0								# the countdown timer trip switch ... zero means it's not yet set
 target = 76								# target temperature .. adjusted due to the new location of the temperature sensor at the back of the lid, reading ~10 degrees lower than the central gauge
