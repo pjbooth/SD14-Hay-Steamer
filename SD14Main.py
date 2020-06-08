@@ -23,7 +23,7 @@ import struct
 
 
 progname = sys.argv[0]						# name of this program
-version = "3.5"								# allows me to track which release is running
+version = "3.6"								# allows me to track which release is running
 interval = 15								# number of seconds between readings (note that ThingSpeak max rate is one update per 15 seconds)
 iotfFile = "/home/pi/SD14IOTF.cfg"
 dateString = '%Y/%m/%d %H:%M:%S.%f'
