@@ -20,6 +20,7 @@ import psutil
 import socket
 import fcntl
 import struct
+import logging
 
 
 progname = sys.argv[0]						# name of this program
@@ -32,6 +33,7 @@ state = 0									# keep track of which state we are in
 											# state 1 = R   = Up and connected to IOTF but steamer not turned on
 											# state 2 = A   = Steamer switched on but not yet reached target temperature
 											# state 3 = G   = Target temperature reached
+											# state 4 = flashing R  = Error condition detected
 mqtt_connected = 0
 diagnostics = 1
 trigger = 70								# temperature at which the countdown safety timer begins ... adjusted due to the new location of the temperature sensor at the back of the lid, reading ~10 degrees lower than the central gauge
@@ -75,7 +77,8 @@ def read_temp(device):
 
 def printlog(message):
 	logline = progname + " " + version + " " + datetime.datetime.now().strftime(dateString) + ": " + message
-	print logline	
+	print logline
+	logging.info(logline)
 	if mqtt_connected == 1 and diagnostics == 1:
 		myData={'_id' : datetime.datetime.now().strftime(dateString), 'name' : progname, 'version' : version, 'message' : message}
 		client.publishEvent(event="logs", msgFormat="json", data=myData)
@@ -210,6 +213,7 @@ def get_ip_address(ifname):
 
 ###########  end of defs  ##################
 
+logging.basicConfig(filename='SD14.log',level=logging.INFO)
 
 GPIO.setmode(GPIO.BCM) 
 GPIO.setup(buttonSteam, GPIO.IN, pull_up_down=GPIO.PUD_UP)		# Push button 1
