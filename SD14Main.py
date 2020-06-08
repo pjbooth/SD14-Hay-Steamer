@@ -92,6 +92,7 @@ def printdata(data):
 	myData = {'_id' : datetime.datetime.now().strftime(dateString), 'temp' : data, 'state' : state, 'cputemp' : cputemp, 'cpupct' : cpupct, 'cpumem' : cpumem}
 	vizData = {'d' : myData}
 	client.publishEvent(event="data", msgFormat="json", data=myData)
+	logging.info(myData)
 
 
 def myCommandCallback(cmd):						# callback example from IOTF documentation
